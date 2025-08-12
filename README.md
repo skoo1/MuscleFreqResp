@@ -1,17 +1,20 @@
 # MuscleFreqResp
 Frequency Response Calculation for Numerical Muscle Models
 
-This repository contains the source code used in the paper:
+This repository contains MATLAB implementations of two numerical Hill-type muscle models and scripts for frequency response analysis as described in our submitted manuscript (Journal of Biomechanics, in submission).
 
-> Frequency Response Characterization of Numerical Hill-Type Muscle Models
-> Journal of Biomechanics, 2025
+## Muscle Models
 
-The code implements the frequency response analysis of numerical muscle models as described in the Methods section.
+- **Thelen Muscle Model (TMM)**  
+  Implemented in MATLAB based on the dynamic equations presented in:  
+  Thelen, D. G. (2003). Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older adults. *Journal of Biomechanical Engineering*, 125(1), 70–77.
 
-Implemented in MATLAB based on the dynamic equations presented in D. G. Thelen (2003).
+- **Millard Muscle Model (MMM)**  
+  MATLAB implementation from M. Millard (2013) was adopted, using the original MATLAB code publicly released by the author:  
+  https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort  
+  Reference:  
+  Millard, M., Uchida, T., Seth, A., & Delp, S. L. (2013). Flexing computational muscle: modeling and simulation of musculotendon dynamics. *Journal of Biomechanical Engineering*, 135(2), 021005.
 
-MATLAB implementation from M. Millard (2013) was adopted, using the original MATLAB code publicly released by the author.
+## Main Scripts
 
 The main MATLAB scripts for frequency response analysis and Bode plot generation were developed by the present authors for this study.
-
----
