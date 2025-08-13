@@ -18,3 +18,17 @@ This repository contains MATLAB implementations of two numerical Hill-type muscl
 ## Main Scripts
 
 The main MATLAB scripts for frequency response analysis and Bode plot generation were developed by the present authors for this study.
+
+## Details
+
+**Authors**  
+M. Kim
+
+**Revision Notes**
+- August 2025: Implementation
+
+**License**  
+Licensed under the Apache License, Version 2.0 (the "License");  
+you may not use this file except in compliance with the License.  
+You may obtain a copy of the License at:  
+http://www.apache.org/licenses/LICENSE-2.0
