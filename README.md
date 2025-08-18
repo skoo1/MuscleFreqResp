@@ -1,5 +1,5 @@
 # MuscleFreqResp
-Frequency Response Calculation for Numerical Muscle Models
+- Frequency Response Calculation for Numerical Muscle Models
 
 This repository contains MATLAB implementations of two numerical Hill-type muscle models and scripts for frequency response analysis as described in our submitted manuscript (Journal of Biomechanics, in submission).
 
@@ -26,3 +26,4 @@ M. Kim
 
 **Revision Notes**
 - August 2025: Implementation
+- August 2025: Edit Readme, main.m, etc.
