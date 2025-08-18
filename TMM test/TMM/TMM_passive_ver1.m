@@ -83,8 +83,6 @@ filename        = 'single_patch.txt';
 fileID          = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
-% L_mn0_values    = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4];
-% L_mn0_values    = [0.6, 0.8, 1.0, 1.2, 1.4];
 L_mn0_values    = [1.0];
 V_m0_values     = [0.0];
 L_mt0_values    = [1.05];
@@ -102,12 +100,11 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat');
 end
 
 %% Main Calculation
 
-% patch_info = readtable('patch_info.txt');
 patch_info = readtable('single_patch.txt');
 
 index_L  = 1;
@@ -134,7 +131,7 @@ while (index_mt <= aim_Ltnum)
     const_b         = 0;
     cutpoint        = 1;                                                              % cutpoint = 1 means no data cutting
 
-    L_mt0           = L_mo * cos(Alpha) + L_ts;                                                    % muscle-tendon length
+    L_mt0           = L_mo * cos(Alpha) + L_ts;                                       % muscle-tendon length
     V_mt0           = 0;                                                              % muscle-tendon velocity
         
     mod_V_m0        = V_m0_values(index_V);
@@ -147,10 +144,10 @@ while (index_mt <= aim_Ltnum)
     f_l0            = active_muscle_force_length_multiplier(mod_L_mn0);                % active force-length scale factor 
     fpe0            = passive_muscle_force_length_multiplier(mod_L_mn0);               % normalized muscle passive force
 
-    u0              = 0.5;
+    u0              = 0.0;
     F_ext           = 0;
 
-    F_n0            = F_ext / F_mo;                                                % normalized external force
+    F_n0            = F_ext / F_mo;                                                    % normalized external force
     Eps_t0          = tendon_strain_decider2(F_n0);                                    % tendon strain by tendon_force region (linear, exponential)
     L_t0            = (1 + Eps_t0) * (L_ts);                                           % tendon length
     
@@ -201,9 +198,9 @@ while (index_mt <= aim_Ltnum)
     
     time_len     = length(time);
     
-    xArray       = zeros(freq_len, time_len);                                          % Displacement array
-    vArray       = zeros(freq_len, time_len);                                          % Velocity array
-    aArray       = zeros(freq_len, time_len);                                          % Acceleration array (NOT AN ACTIAVTION)
+    xArray       = zeros(freq_len, time_len);                                         % Displacement array
+    vArray       = zeros(freq_len, time_len);                                         % Velocity array
+    aArray       = zeros(freq_len, time_len);                                         % Acceleration array (NOT AN ACTIAVTION)
     
     x_ext        = zeros(freq_len, time_len); %%%
     v_ext        = zeros(freq_len, time_len); %%%
@@ -214,13 +211,13 @@ while (index_mt <= aim_Ltnum)
 
     % [ initialization ]
 
-    L_t          = ones(freq_len, time_len) .* L_t0;                                   % tendon length
-    L_mn         = ones(freq_len, time_len) .* L_mn0;                              % normalized muscle length
-    Eps_t        = ones(freq_len, time_len) .* Eps_t0;                                 % tendon strain
-    f_l          = ones(freq_len, time_len) .* f_l0;                                   % active force(length) multiplier
-    fse          = ones(freq_len, time_len) .* fse0;                                   % tendon force
-    fpe          = ones(freq_len, time_len) .* fpe0;                                   % muscle passive force
-    F_mA         = ones(freq_len, time_len) .* F_mA0;                                  % muscle active force
+    L_t          = ones(freq_len, time_len) .* L_t0;                                  % tendon length
+    L_mn         = ones(freq_len, time_len) .* L_mn0;                                 % normalized muscle length
+    Eps_t        = ones(freq_len, time_len) .* Eps_t0;                                % tendon strain
+    f_l          = ones(freq_len, time_len) .* f_l0;                                  % active force(length) multiplier
+    fse          = ones(freq_len, time_len) .* fse0;                                  % tendon force
+    fpe          = ones(freq_len, time_len) .* fpe0;                                  % muscle passive force
+    F_mA         = ones(freq_len, time_len) .* F_mA0;                                 % muscle active force
     penn         = ones(freq_len, time_len) .* Alpha;
     Fmtot        = zeros(freq_len, time_len);
     Fmtot_       = zeros(freq_len, time_len);
@@ -230,14 +227,12 @@ while (index_mt <= aim_Ltnum)
     sig_in_a     = zeros(freq_len, time_len);  
     sig_out      = zeros(freq_len, time_len);         
 
-    L_mt         = ones(freq_len, time_len) * L_mt0;                                          % muscle tendon length
-    A_mt         = zeros(freq_len, time_len);                                          % muscle tendon accleration
-    V_mt         = zeros(freq_len, time_len);                                          % muscle tendon velocity
-    V_m          = zeros(freq_len, time_len);                                          % muscle velocity
+    L_mt         = ones(freq_len, time_len) * L_mt0;                                  % muscle tendon length
+    A_mt         = zeros(freq_len, time_len);                                         % muscle tendon accleration
+    V_mt         = zeros(freq_len, time_len);                                         % muscle tendon velocity
+    V_m          = zeros(freq_len, time_len);                                         % muscle velocity
     V_t          = zeros(freq_len, time_len);
-    
-    % patch_result = cell(length(frequencies), 1);
-    
+        
     idx          = zeros(1, length(frequencies));
 
     pha          = zeros(1, length(frequencies));
@@ -285,7 +280,6 @@ while (index_mt <= aim_Ltnum)
             while ( abs(real(error)) > 1e-11 )                                                          % --------------Bisection method---------------
                 L_mm = 1/2 * (start_ + end_);                                                               % normalized new muscle length (midpoint)
                 
-                % penn_temp       = dAlpha(L_mt_eff(k, i), L_t(k, i));
                 penn_temp = Alpha;
 
                 L_t  (k, i+1)   = L_mt_eff(k, i) - (L_mm * L_mo) * cos(penn_temp);                           % new muscle velocity (explicit)
@@ -296,7 +290,6 @@ while (index_mt <= aim_Ltnum)
                 f_l  (k, i+1)   = active_muscle_force_length_multiplier(L_mm);                              % new active muscle force(length) multiplier
                 fpe  (k, i+1)   = passive_muscle_force_length_multiplier(L_mm);                             % new muscle passive force
                 F_mA (k, i+1)   = active_force(V_m(k, i+1), f_l(k, i+1), u);
-                % F_mA (k, i+1)   = 0;
 
                 error           = fse(k, i+1) - (F_mA(k, i+1) + fpe(k, i+1)) * cos(penn_temp);              % error for force equilbrium (muscle, tendon)
 
@@ -312,8 +305,6 @@ while (index_mt <= aim_Ltnum)
             if (L_mn(k, i+1) * L_mo < L_mo)
                 sprintf("Fiber length is shorter than Lopt");
             end
-
-            % penn(k, i+1)    = Alpha;
 
             penn(k, i+1)    = penn_temp;
 
@@ -344,25 +335,17 @@ while (index_mt <= aim_Ltnum)
 
         [~, idx(k)]     = min(abs(f - freq));
 
-        % omega   = 2 * pi * f(idx(k));
-        % Z_total = F_fft(idx(k)) / X_fft(idx(k));
-        % Z_visco = Z_total - mass * (1i * omega)^2;
-
         sin_f(k)        = freq;
-        % mag(k) = abs(Z_visco);
-        % pha(k) = angle(Z_visco);
         mag  (k)        = abs(F_fft(idx(k))) / abs(X_fft(idx(k)));
         pha  (k)        = angle(F_fft(idx(k))) - angle(X_fft(idx(k)));
-        % exc  (k)        = abs(A_fft(idx(k)));
-        
 
         fprintf("%d step was totally done \n\n", k);
         toc;
  
         fprintf("\n-----------------------------\n\n");
 
-        N_fft     = n_f;                                                % 실제 FFT 길이
-        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              % 출력신호 절반 구간 파워 스펙트럼       
+        N_fft     = n_f;                                               
+        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;             
 
     end
 
@@ -435,7 +418,6 @@ end
 %% Bode plots
 
 figure();
-% sg = sgtitle(sprintf('Midpoint: L_{mn} = %.2f, V_{m} = %.2f, at u_{0} = %.2f', mod_L_mn0, mod_V_m0, u0));
 sg              = sgtitle(sprintf('Bode plot of each conditions w/ u_{0} = %.2f', u0), 'FontSize', 18);
 
 cm              = hsv(pnum - 1);
@@ -470,98 +452,6 @@ end
 
 hold off;
 
-%% Patching (Multi)
-% TO VISUALIZE ALL THE PATCHES
-
-% L_mn_patch_midval = L_mn0_values;
-% V_m_patch_midval  = V_m0_values;
-% 
-% l_pnum  = length(L_mn_patch_midval);
-% v_pnum  = length(V_m_patch_midval);
-% 
-% grid_interval = 100;
-% 
-% % fprintf("Total number of the patches: %d\n\n", l_pnum * v_pnum);
-% 
-% temp = cell(v_pnum, l_pnum);
-% 
-% for l = 1 : l_pnum
-%     for v = 1 : v_pnum
-%         L_mn_patch_temp_range = linspace(L_mn_patch_midval(l) - L_range, L_mn_patch_midval(l) + L_range, grid_interval);
-%         V_m_patch_temp_range = linspace(V_m_patch_midval(v) - V_range, V_m_patch_midval(v) + V_range, grid_interval);
-% 
-%         [L_mn_patch_temp, V_m_patch_temp] = meshgrid(L_mn_patch_temp_range, V_m_patch_temp_range);
-% 
-%         F_patch_temp = zeros(grid_interval, grid_interval);
-% 
-%         for i = 1 : grid_interval
-%             f_l_patch_temp = active_muscle_force_length_multiplier(L_mn_patch_temp(i));
-%             F_pe_patch_temp = passive_muscle_force_length_multiplier(L_mn_patch_temp(i));
-% 
-%             for j = 1 : grid_interval
-%                 F_patch_temp(i, j) = active_force(V_m_patch_temp(i), f_l_patch_temp, 0.5) + F_pe_patch_temp;
-%             end
-%         end
-% 
-%         temp{v, l} = {L_mn_patch_temp, V_m_patch_temp, F_patch_temp};
-%     end
-% end
-% 
-% figure();
-% 
-% for i = 1 : l_pnum
-%     for j = 1 : v_pnum
-%         temp_data = temp{j, i};
-%         scatter3(temp_data{1}, temp_data{2}, temp_data{3}, 2, 'MarkerEdgeColor', 'none', 'MarkerFaceColor', 'red', 'MarkerFaceAlpha', 0.1);
-%         hold on;
-%     end
-% end
-% 
-% % [ Visualize the result when calculated f, l, v data satisfy the criteria (remaining in a patch) ]
-% 
-% colors = jet(freq_len);
-% 
-% count = 0;
-% 
-% for p_num_ = 1 : pnum - 1
-%     for k = 1 : freq_len
-%         color = colors(k, :);
-% 
-%         plot3(patch_result{p_num_, k}(cutpoint:end, 1), patch_result{p_num_, k}(cutpoint:end, 2), ...
-%             patch_result{p_num_, k}(cutpoint:end, 3), 'o', 'Color', color, 'MarkerSize', 2);
-%         count = count + 1;
-% 
-%         hold on;
-%     end
-% end
-% 
-% 
-% L_mn_baseline_range = linspace(0.2, 1.8, 100);
-% V_m_baseline_range = linspace(-2.0, 2.0, 100);
-% [L_mn_grid, V_m_grid] = meshgrid(L_mn_baseline_range, V_m_baseline_range);
-% 
-% f_l_baseline_grid = zeros(size(L_mn_grid));
-% F_pe_baseline_grid = zeros(size(L_mn_grid));
-% 
-% for i = 1 : numel(L_mn_grid)
-%     f_l_baseline_grid(i) = active_muscle_force_length_multiplier(L_mn_grid(i));
-%     F_pe_baseline_grid(i) = passive_muscle_force_length_multiplier(L_mn_grid(i));
-% end
-% 
-% F_baseline_total_grid = zeros(size(L_mn_grid));
-% for i = 1 : numel(L_mn_grid)
-%     F_baseline_total_grid(i) = (active_force(V_m_grid(i), f_l_baseline_grid(i), 0.5) + F_pe_baseline_grid(i));
-% end
-% 
-% figure();
-% surf(L_mn_grid, V_m_grid, F_baseline_total_grid, 'FaceAlpha', 0.1);
-% xlabel('Normalized Muscle Length (L/L_{mo})', 'FontSize', 18);
-% ylabel('Muscle Velocity (V/V_{max})', 'FontSize', 18);
-% zlabel('Muscle Force', 'FontSize', 18);
-% title('Patch with base F-L-V Surface(act = 0.5)', 'FontSize', 18);
-% 
-% hold off;
-
 %% Extra figure extracting
 target_freq_num = 1;
 
@@ -586,26 +476,8 @@ plot(time, savingdata_time{1, target_freq_num}(:, 7)); title('Total Length'); yl
 figure();
 plot(time, V_m(target_freq_num, :)); title('Fiber velocity'); ylabel('(m/s)');
 
-% figure();
-% plot(time, ((patch_result{1, target_freq_num}(:, 3) + patch_result{1, target_freq_num}(:, 4)) * cos(Alpha) ...
-%     - fse(target_freq_num, :)) * F_mo); title('Force Difference (N)');
 
 %% Functions
-
-
-function Tau = get_Tau(a, u)
-    Tau_a   = 0.01;
-    % Tau_a   = 0.005;
-    Tau_d   = 0.04;                                                                         % Equation 2 of thelen(2003)
-    % Tau_d   = 0.06;
-
-    if (u > a)
-        Tau = Tau_a * (0.5 + 1.5 * a);
-    else
-        Tau = Tau_d / (0.5 + 1.5 * a);
-    end
-end
-
 
 function Eps_t = tendon_strain_decider2(F_n)
     EPSto   = 0.033;                                                                        % Tendon strain due to maximum isometric force
@@ -676,23 +548,4 @@ function F_t = tendon_force_multiplier(eps_t)
     else
         F_t = K_lin * (eps_t - EPSttoe) + F_ttoe;
     end 
-end
-
-function dPennationAngle = dAlpha(m_muscleLength, tendon_length)
-    
-    Alpha0  = 0.4363;               % Optimal pennation angle (rad)
-    % Alpha0   = 0.3050;
-    L_mo    = 0.05;                 % Optimal fiber length (m)
-
-    m_const_muscle_height = L_mo * sin(Alpha0);
-
-    cos_fiber_length = m_muscleLength - tendon_length;
-
-    % m_muscleLength is the total muscle length
-    if (m_const_muscle_height / cos_fiber_length) > 9.0
-        dPennationAngle = atan(9.0);
-    else
-        dFiberLength = sqrt(cos_fiber_length * cos_fiber_length + m_const_muscle_height * m_const_muscle_height);
-        dPennationAngle = asin(m_const_muscle_height / dFiberLength);
-    end
 end
