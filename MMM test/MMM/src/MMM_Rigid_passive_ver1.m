@@ -147,7 +147,7 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat');
 end
 
 %% Main Calculation
@@ -355,49 +355,6 @@ while (index_L <= aim_Lnum)
 
             temp_index = temp_index + 1;
             
-            % pathState        = [0; L_mt(k, i)];
-            % % muscleState      = [dlceAT(k, i); lceAT(k, i)];
-            % muscleState      = [0; lceAT(k, i)];
-            % 
-            % mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
-            %     0.0, ...
-            %     pathState, ...
-            %     muscleState, ...
-            %     muscleArch, ...
-            %     normMuscleCurves, ...
-            %     modelConfig);
-            % 
-            % fprintf("%.3f\n", mtInfo.initialization.err);
-            % 
-            % % fprintf("%d\n", mtInfo.fiberVelocityInfo.fiberForceVelocityMultiplier);
-            % % fprintf("%d\n", mtInfo.muscleDynamicsInfo.normTendonForce);
-            % 
-            % tendonForce(k, i+1)       = mtInfo.muscleDynamicsInfo.tendonForce;
-            % fiberForce(k, i+1)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-            % activefiberForce(k, i+1)  = mtInfo.muscleDynamicsInfo.activeFiberForce;
-            % passivefiberForce(k, i+1) = mtInfo.muscleDynamicsInfo.passiveFiberForce;
-            % 
-            % dlceAT(k, i+1)            = mtInfo.state.derivative;
-            % % lceAT(k, i+1)             = mtInfo.state.value;
-            % lceAT(k, i+1)             = lceAT(k, i) + dlceAT(k, i) * dt;
-            % 
-            % if (lceAT(k, i+1) < lceOpt)
-            %     sprintf("Fiber length is shorter than Lopt");
-            % end
-            % 
-            % % lceAT(k, i+1)             = mtInfo.muscleLengthInfo.fiberLengthAlongTendon;
-            % % dlceAT(k, i+1)            = mtInfo.fiberVelocityInfo.fiberVelocityAlongTendon;
-            % alpha(k, i+1)             = mtInfo.muscleLengthInfo.pennationAngle;
-            % 
-            % tendon_length(k, i+1)     = mtInfo.muscleLengthInfo.tendonLength;
-            % tendon_velocity(k, i+1)   = mtInfo.fiberVelocityInfo.tendonVelocity;   
-            % 
-            % % V_mt(k, i+1)                = (L_mt(k, i+1) - L_mt(k, i)) / dt;
-            % 
-            % temp_result(temp_index, :) = [lceAT(k, i+1), dlceAT(k, i+1), activefiberForce(k, i+1), ... 
-            %     passivefiberForce(k, i+1), fiberForce(k, i+1), tendonForce(k, i+1), L_mt(k, i+1)];
-            % 
-            % temp_index = temp_index + 1;
         end          
 
         % patch_result{pnum, k} = temp_result;
@@ -431,20 +388,20 @@ while (index_L <= aim_Lnum)
         fprintf("\n-----------------------------\n\n");
 
         % THD Calculation
-        N_fft       = n_f;                                                % 실제 FFT 길이
-        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              % 출력신호 절반 구간 파워 스펙트럼
+        N_fft       = n_f;                                               
+        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              
         
-        basic_idx   = idx(k);                                             % 기본파 인덱스
-        basic_power = P_out(basic_idx);                                   % 기본파 파워
+        basic_idx   = idx(k);                                           
+        basic_power = P_out(basic_idx);                                   
         
         har_idx     = 2 * basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             % 범위 초과 방지
+        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             
         
         if basic_power ~= 0
             har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         % THD = sqrt(고조파 파워합) / sqrt(기본파 파워)
+            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         
         else
-            THD_vals(k)  = NaN;                                         % 기본파가 너무 작으면 계산 불가
+            THD_vals(k)  = NaN;                                         
         end
     end
 
@@ -547,14 +504,6 @@ for fnum = 1 : pnum - 1
 
     mag_dB = 20 * log10(bode_mag);
     omega = 2 * pi * bode_freq; % Frequency (rad/s)
-
-    % Generate complex response for FRD
-    % bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
-    % data = frd(bode_response, omega);
-    % 
-    % sys = tfest(data, 2);
-    % [wn, zeta] = damp(sys);
-    % nat_freq_Hz = wn(1) / (2 * pi);
 
     subplot(2, 1, 1);
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
