@@ -101,12 +101,11 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat');
 end
 
 %% Main Calculation
 
-% patch_info = readtable('patch_info.txt');
 patch_info = readtable('single_patch.txt');
 
 index_L = 1;
@@ -161,8 +160,6 @@ while (index_L <= aim_Lnum)
     dt           = 0.001;
     time         = 0 : dt : (totalTime - dt);
 
-    % frequencies(1:500)  = linspace(0, 0.1, 500);
-    % frequencies(501:1000) = logspace(-1, 2, 500);
     frequencies  = logspace(-1, 2, 1000);                                              % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
 
     freq_len     = length(frequencies);          
@@ -195,9 +192,7 @@ while (index_L <= aim_Lnum)
     V_mt         = zeros(freq_len, time_len);                                          % muscle tendon velocity
     V_m          = zeros(freq_len, time_len);                                          % muscle velocity
     V_t          = zeros(freq_len, time_len);
-    
-    % patch_result = cell(length(frequencies), 1);
-    
+        
     idx          = zeros(1, length(frequencies));
 
     pha          = zeros(1, length(frequencies));
@@ -221,10 +216,6 @@ while (index_L <= aim_Lnum)
         freq = frequencies(k);
 
         u    = sinwave(freq, time, u0, u0, const_b);
-        
-        % Adjust hamming window to get an smooth phase response
-        % window          = hamming(length(u));
-        % windowed_sig_in = u .* window';
 
         for u_temp = 1 : length(u)
             if u(u_temp) < 0; u(u_temp) = 0; end
@@ -232,7 +223,6 @@ while (index_L <= aim_Lnum)
         end
 
         a    = ones(1, length(u)) * u0;
-        % a(1) = windowed_sig_in(1);
 
         for act = 1 : length(u) - 1
             da_dt = (u(act) - a(act)) / get_Tau(a(act), u(act));
@@ -248,14 +238,14 @@ while (index_L <= aim_Lnum)
         for i = 1 : time_len - 1                                                                            % Explicit method
             start_      = 0.0;       
             error       = 1000;                                                                             % error should be less than 1e-10
-            error_velocity = 1000; %
+            error_velocity = 1000;
 
             end_        = 3.0;
 
             V_mt(k, 1)      = 0          + A_mt(k, 1)   * dt;                       
             L_mt(k, 1)      = mod_L_mt0  + V_mt(k, 1)   * dt; 
 
-            while ( abs(real(error)) > 1e-11)   %                                                           % --------------Bisection method---------------
+            while ( abs(real(error)) > 1e-11)                                                               % --------------Bisection method---------------
                 L_mm = 1/2 * (start_ + end_);                                                               % normalized new muscle length (midpoint)
                 L_t(k, i+1)     = L_mt(k, i) - (L_mm * L_mo) * cos(Alpha);
                 V_m(k, i+1)     = ((L_mm - L_mn(k, i)) * L_mo / dt) / V_mmax;                               % new muscle velocity (explicit)
@@ -266,8 +256,6 @@ while (index_L <= aim_Lnum)
                 fpe  (k, i+1)   = passive_muscle_force_length_multiplier(L_mm);                             % new muscle passive force
                 F_mA (k, i+1)   = active_force(V_m(k, i+1), f_l(k, i+1), sig_in_a(k, i+1));
                 
-                % temp_penn       = asin(h0 / L_mm * L_mo); % cosine을 구해서 넣는 방법 고민
-                % temp_penn       = dAlpha(L_mt(k, i+1), L_t(k, i+1));
                 temp_penn       = Alpha;
                 
                 kp              = 1.0;
@@ -284,23 +272,12 @@ while (index_L <= aim_Lnum)
             end            
                                                                                                             % -----------------iteration over----------------
             L_mn(k, i+1)    = L_mm;                                                                         % save Bisection result
-    
-            % temp_result(temp_index, :) = [L_mn(k, i+1), V_m(k, i+1), F_mA(k, i+1), fpe(k, i+1)];
-            % temp_index = temp_index + 1;
-          
-            % F_ext = F_mo * fse(k, i+1);
-            % F_ext = F_mo * F_mA(k, i+1) * cos(dAlpha(L_mn(k, i+1) * L_mo, L_t(k, i)));
-
-            % fprintf("\nF_ext1: %d, F_ext2: %d\n", F_ext1, F_ext2);
             
             A_mt(k, i+1)    = (F_ext - fse(k, i+1) * F_mo - V_mt(k, i) * damp) / mass;
     
             V_mt(k, i+1)    = V_mt(k, i) + A_mt(k, i+1) * dt;                        
             L_mt(k, i+1)    = L_mt(k, i) + V_mt(k, i+1) * dt;                      
-            
-            % V_t (k, i+1)    = V_mt(k, i+1) - V_m(k, i+1) * cos(dAlpha(L_mm * L_mo, L_t(k, i)));           % new tendon velocity in m/s
-        
-            % penn(k, i+1)    = dAlpha(L_mt(k, i+1), L_t(k, i+1));
+
             penn(k, i+1)    = Alpha;
 
             Fmtot(k, i+1)   = F_mo * (F_mA(k, i+1) + fpe(k, i+1)) * cos(penn(k, i+1));
@@ -308,8 +285,6 @@ while (index_L <= aim_Lnum)
             temp_result(temp_index, :) = [L_mn(k, i+1), V_m(k, i+1), F_mA(k, i+1), fpe(k, i+1), Fmtot(k, i+1), fse(k, i+1), L_mt(k, i+1)];
             temp_index = temp_index + 1;
         end          
-
-        % patch_result{pnum, k}               = temp_result;
 
         patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
         save(patch_filename, 'temp_result', '-v7.3');
@@ -322,16 +297,9 @@ while (index_L <= aim_Lnum)
         sig_out_clean                       = sig_out(k, cutpoint:end-1);
         
         Fs              = 1 / dt;
-
-        % in_woDC         = detrend(sig_in(k, cutpoint:end-1), 0);
-        % out_woDC        = detrend(sig_out_clean, 0);
-
         n_x             = length(sig_in(k, cutpoint:end-1));
         n_f             = length(sig_out_clean);
         f               = (0 : n_x - 1) * (Fs / n_x);
-
-        % A_fft           = fft(sig_in(k, cutpoint:end-1)) / n_x;
-        % F_fft           = fft(sig_out_clean) / n_f;
         
         A_fft           = fft(sig_in(k, cutpoint:end-1));
         F_fft           = fft(sig_out_clean);
@@ -344,9 +312,7 @@ while (index_L <= aim_Lnum)
 
         sin_f(k)        = freq;
         mag  (k)        = abs(F_fft(idx(k))) / abs(A_fft(idx(k)));
-        % mag  (k)        = abs(F_fft(k)) / abs(A_fft(k));
         pha  (k)        = angle(F_fft(idx(k))) - angle(A_fft(idx(k)));
-        % pha  (k)        = angle(F_fft(k)) - angle(A_fft(k));
         exc  (k)        = abs(A_fft(idx(k)));
 
         fprintf("%d step was totally done \n\n", k);
@@ -355,31 +321,26 @@ while (index_L <= aim_Lnum)
         fprintf("\n-----------------------------\n\n");
 
         % THD Calculationx
-        N_fft     = n_f;                                                % 실제 FFT 길이
-        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              % 출력신호 절반 구간 파워 스펙트럼
+        N_fft     = n_f;                                                
+        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              
         
-        basic_idx = idx(k);                                             % 기본파 인덱스
-        basic_power = P_out(basic_idx);                                 % 기본파 파워
+        basic_idx = idx(k);                                             
+        basic_power = P_out(basic_idx);                                 
         
-        % 고조파 인덱스: 2배, 3배, ... 배수
         har_idx = 2*basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx = har_idx(har_idx <= floor(N_fft/2) + 1);               % 범위 초과 방지
+        har_idx = har_idx(har_idx <= floor(N_fft/2) + 1);               
         
         if basic_power ~= 0
             har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         % THD = sqrt(고조파 파워합) / sqrt(기본파 파워)
+            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         
         else
-            THD_vals(k)  = NaN;                                         % 기본파가 너무 작으면 계산 불가
+            THD_vals(k)  = NaN;                                         
         end
 
     end
 
     pha = unwrap(pha) * (180 / pi);
 
-    % figure();
-    % subplot(2, 1, 1); plot(f, A_fft); title("A\_fft"); grid on;
-    % subplot(2, 1, 2); plot(f, abs(F_fft)); title("F\_fft"); grid on;
-    
     visual_result{pnum}{:, 1} = sin_f;
     visual_result{pnum}{:, 2} = mag;
     visual_result{pnum}{:, 3} = pha;
@@ -447,7 +408,6 @@ end
 %% Bode plots
 
 figure();
-% sg = sgtitle(sprintf('Midpoint: L_{mn} = %.2f, V_{m} = %.2f, at u_{0} = %.2f', mod_L_mn0, mod_V_m0, u0));
 sg              = sgtitle(sprintf('Bode plot of each conditions w/ u_{0} = %.2f', u0), 'FontSize', 18);
 
 cm              = hsv(pnum - 1);
@@ -473,9 +433,6 @@ for fnum = 1 : pnum - 1
     % ylim([-20 60]);
     hold on;
 
-    % plot(nat_freq, max_mag, 'x', 'MarkerSize', 10, 'Color', cm(fnum, :), 'LineWidth', 2);
-    % text(nat_freq, max_mag, sprintf(' f_n = %.2f Hz', nat_freq), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
-
     subplot(2, 1, 2);
     semilogx(visual_result{fnum}{:, 1}, visual_result{fnum}{:, 3}, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
@@ -483,12 +440,6 @@ for fnum = 1 : pnum - 1
     % ylim([-180 180]);
     hold on;
 end
-
-% subplot(2, 1, 1);
-% legend('Location', 'EastOutside', 'Box', 'off');
-% 
-% subplot(2, 1, 2);
-% legend('Location', 'EastOutside', 'Box', 'off');
 
 hold off;
 
@@ -594,110 +545,6 @@ grid on;
 % 
 % hold off;
 
-%% Extra figure extracting
-target_freq_num = 1;
-
-% figure();
-% subplot(3, 1, 1);
-% plot(time, patch_result{1, target_freq_num}(:, 4) * F_mo); title('Fiber Passive Force'); ylabel('(N)');
-% 
-% subplot(3, 1, 2);
-% plot(time, patch_result{1, target_freq_num}(:, 3) * F_mo); title('Fiber Active Force'); ylabel('(N)');
-% 
-% subplot(3, 1, 3);
-% plot(time, patch_result{1, target_freq_num}(:, 6) * F_mo); title('Tendon Force'); ylabel('(N)');
-
-% 
-% figure();
-% subplot(3, 1, 1);
-% plot(time, patch_result{1, target_freq_num}(:, 1) * L_mo); title('Fiber Length'); ylabel('(m)');
-% 
-% subplot(3, 1, 2);
-% plot(time, L_t(target_freq_num, :)'); title('Tendon Length'); ylabel('(m)');
-% 
-% subplot(3, 1, 3);
-% plot(time, penn(target_freq_num, :)); title('Pennation Angle'); ylabel('rad');
-% 
-% figure();
-% plot(time, V_m(target_freq_num, :)); title('Fiber velocity'); ylabel('(m/s)');
-
-
-% figure();
-% plot(time, ((patch_result{1, target_freq_num}(:, 3) + patch_result{1, target_freq_num}(:, 4)) * cos(Alpha) ...
-%     - fse(target_freq_num, :)) * F_mo); title('Force Difference (N)');
-
-
-%% Checking the power spectrum of selected frequencies
-% selectedFreqs = [1, 10, 50];   % 예: 1 Hz, 10 Hz, 50 Hz
-% 
-% % (예시) 샘플링 주파수
-% Fs = 1 / dt;                   % 사용 중인 dt에 따른 샘플링 주파수
-% 
-% figure('Name','Power Spectrum Check','Color','w');
-% for i = 1:length(selectedFreqs)
-%     % 1) 분석할 주파수와, frequencies 배열에서 해당 주파수에 가장 가까운 인덱스를 찾습니다.
-%     freqVal   = selectedFreqs(i);
-%     freqIndex = find(abs(frequencies - freqVal) == min(abs(frequencies - freqVal)), 1);
-% 
-%     % 2) 해당 주파수에서의 입력 및 출력 신호 추출
-%     inSignal  = sig_in(freqIndex, :);
-%     outSignal = sig_out(freqIndex, :);
-% 
-%     % 3) FFT에 사용할 길이(2의 제곱수)를 구하고, 원래 신호 길이를 저장
-%     originalLen = length(inSignal);
-%     fftLen      = 2^nextpow2(originalLen);
-% 
-%     % 4) 창 함수 적용 (필요 시 사용). 여기서는 예시로 Hamming 창을 사용.
-%     %   이미 window 변수가 있으면 그대로 쓰고, 없다면 새로 만들어도 됨.
-%     %   (window의 길이는 신호 길이와 동일해야 함)
-%     winFn = hamming(originalLen)';      % row vector
-% 
-%     % 5) Zero-padding & 창 함수를 곱해준 결과
-%     paddedIn  = [inSignal  .* winFn, zeros(1, fftLen - originalLen)];
-%     paddedOut = [outSignal .* winFn, zeros(1, fftLen - originalLen)];
-% 
-%     % 6) FFT 계산 (창 함수 보정 위해 나눠주는 값으로 sum(winFn) 사용 가능)
-%     InFFT  = fft(paddedIn)  / sum(winFn);
-%     OutFFT = fft(paddedOut) / sum(winFn);
-% 
-%     % 7) Positive frequency 성분만 추출
-%     halfLen  = floor(fftLen / 2) + 1;
-%     fAxis    = (0 : fftLen - 1) * (Fs / fftLen);   % 전체 FFT 주파수 축
-%     fAxisPos = fAxis(1 : halfLen);                % 양의 주파수 구간만
-% 
-%     InMag   = abs(InFFT (1 : halfLen));
-%     InPhase = angle(InFFT (1 : halfLen));
-%     OutMag  = abs(OutFFT(1 : halfLen));
-%     OutPhase= angle(OutFFT(1 : halfLen));
-% 
-%     % 8) 파워 스펙트럼
-%     P_in  = InMag  .^2;
-%     P_out = OutMag .^2;
-% 
-%     % 9) 결과 플롯
-%     subplot(length(selectedFreqs), 2, 2*i - 1);
-%     plot(fAxisPos, 10*log10(P_in), 'b');
-%     title(['Input Power Spectrum at ', num2str(freqVal), ' Hz']);
-%     xlabel('Frequency (Hz)'); xlim([0 100]);
-%     ylabel('Power (dB)'); grid on;
-% 
-%     subplot(length(selectedFreqs), 2, 2*i);
-%     plot(fAxisPos, 10*log10(P_out), 'r');
-%     title(['Output Power Spectrum at ', num2str(freqVal), ' Hz']);
-%     xlabel('Frequency (Hz)'); xlim([0 100]);
-%     ylabel('Power (dB)'); grid on;
-% end
-
-% fs = 8000;
-% freqs = [440, 440, 440, 880, 660]; 
-% duration = 0.2;
-% for freq = freqs
-%     t = 0:1/fs:duration;
-%     y = sin(2 * pi * freq * t);
-%     sound(y, fs);
-%     pause(duration); 
-% end
-
 %% Functions
 
 function input = sinwave(frq, t, a0, a, b)                                                        % Generating sine-wave fore acvitation
@@ -738,28 +585,6 @@ function reverse_Fext = rF(a, V_temp, L_mn0)
     else
         reverse_Fext = (F_mo * a * f_l * f_v) * cos(Alpha);
     end
-end
-
-
-function input = chirpwave(init_freq, final_freq, duringtime)
-    time = 0 : dt : (totalTime - dt);
-
-    fArray_temp = chirp(time, init_freq, duringtime, final_freq, 'linear', -0);             % Making Chirp signal
-    fArray_min = min(fArray_temp); fArray_max = max(fArray_temp);
-    fArray = 10 * (fArray_temp - fArray_min) / (fArray_max - fArray_min);                   % Modify chirp signal that oscillate in positive range
-end
-
-
-function input = wgn_sinwave(frq, t, a0)
-    phase_shift = asin(2 * a0 - 1);
-    
-    input = a0 + sin(2 * pi * frq * t + phase_shift) * (1 - a0);
-  
-    noise = wgn(1, length(t), -10, 'complex');
-
-    input = input + noise;
-
-    input = min(max(input, 0), 1);
 end
 
 
@@ -806,20 +631,6 @@ function F_pe = passive_muscle_force_length_multiplier(L_mn)
     end
 end
 
-
-function inv_Lmn = inverse_F_pe(F_pe)
-    global K_pe EPSmo;
-    
-    inv_Lmn = (log(F_pe * (exp(K_pe) - 1) + 1)) / K_pe + 1;
-end
-
-
-function f_l0 = active_muscle_force_length_multiplier(L_mn)                                 
-    Gamma = 0.45;                                                                           % Equation 4 of thelen (2003)
-    f_l0 = exp(-((L_mn - 1).^2) / Gamma);
-end
-
-
 function F_mn = active_force(V_temp, f_l, a)                                                % Equation 6,7 of thelen (2003)
     A_f     = 0.3;                                                                          
     F_mnlen = 1.4;      
@@ -838,24 +649,6 @@ function F_mn = active_force(V_temp, f_l, a)                                    
     F_mn = a * f_l * velocity_factor;
 end
 
-
-function V_m = muscle_fiber_velocity(F_mA, f_l, a, F_mo)                                    % Equation 6,7 of thelen (2003)
-    V_mmax  = 10 * L_mo;
-    A_f     = 0.3;                                                                          
-    F_mnlen = 1.4;
-
-    F_temp = F_mA / F_mo;
-    
-    if F_temp <= a * f_l
-        b = a * f_l + F_temp / A_f;
-    else
-        b = ((2 + 2 / A_f) * (a * f_l * F_mnlen - F_temp)) / (F_mnlen - 1);
-    end
-
-    V_m = (0.25 + 0.75 * a) * V_mmax * ((F_temp - a * f_l) / b);
-end
-
-
 function F_t = tendon_force_multiplier(eps_t)
     % global EPSttoe F_ttoe K_toe K_lin;                                                    % Equation 5 of thelen (2003)
 
@@ -870,23 +663,4 @@ function F_t = tendon_force_multiplier(eps_t)
     else
         F_t = K_lin * (eps_t - EPSttoe) + F_ttoe;
     end 
-end
-
-function dPennationAngle = dAlpha(m_muscleLength, tendon_length)
-    
-    Alpha0  = 0.4363;               % Optimal pennation angle (rad)
-    % Alpha0   = 0.3050;
-    L_mo    = 0.05;                 % Optimal fiber length (m)
-
-    m_const_muscle_height = L_mo * sin(Alpha0);
-
-    cos_fiber_length = m_muscleLength - tendon_length;
-
-    % m_muscleLength is the total muscle length
-    if (m_const_muscle_height / cos_fiber_length) > 9.0
-        dPennationAngle = atan(9.0);
-    else
-        dFiberLength = sqrt(cos_fiber_length * cos_fiber_length + m_const_muscle_height * m_const_muscle_height);
-        dPennationAngle = asin(m_const_muscle_height / dFiberLength);
-    end
 end
