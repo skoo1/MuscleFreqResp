@@ -147,7 +147,7 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat');
 end
 
 %% Main Calculation
@@ -378,59 +378,14 @@ while (index_L <= aim_Lnum)
 
             temp_index = temp_index + 1;
             
-            % pathState        = [0; L_mt(k, i)];
-            % % muscleState      = [dlceAT(k, i); lceAT(k, i)];
-            % muscleState      = [0; lceAT(k, i)];
-            % 
-            % mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
-            %     0.0, ...
-            %     pathState, ...
-            %     muscleState, ...
-            %     muscleArch, ...
-            %     normMuscleCurves, ...
-            %     modelConfig);
-            % 
-            % fprintf("%.3f\n", mtInfo.initialization.err);
-            % 
-            % % fprintf("%d\n", mtInfo.fiberVelocityInfo.fiberForceVelocityMultiplier);
-            % % fprintf("%d\n", mtInfo.muscleDynamicsInfo.normTendonForce);
-            % 
-            % tendonForce(k, i+1)       = mtInfo.muscleDynamicsInfo.tendonForce;
-            % fiberForce(k, i+1)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-            % activefiberForce(k, i+1)  = mtInfo.muscleDynamicsInfo.activeFiberForce;
-            % passivefiberForce(k, i+1) = mtInfo.muscleDynamicsInfo.passiveFiberForce;
-            % 
-            % dlceAT(k, i+1)            = mtInfo.state.derivative;
-            % % lceAT(k, i+1)             = mtInfo.state.value;
-            % lceAT(k, i+1)             = lceAT(k, i) + dlceAT(k, i) * dt;
-            % 
-            % if (lceAT(k, i+1) < lceOpt)
-            %     sprintf("Fiber length is shorter than Lopt");
-            % end
-            % 
-            % % lceAT(k, i+1)             = mtInfo.muscleLengthInfo.fiberLengthAlongTendon;
-            % % dlceAT(k, i+1)            = mtInfo.fiberVelocityInfo.fiberVelocityAlongTendon;
-            % alpha(k, i+1)             = mtInfo.muscleLengthInfo.pennationAngle;
-            % 
-            % tendon_length(k, i+1)     = mtInfo.muscleLengthInfo.tendonLength;
-            % tendon_velocity(k, i+1)   = mtInfo.fiberVelocityInfo.tendonVelocity;   
-            % 
-            % % V_mt(k, i+1)                = (L_mt(k, i+1) - L_mt(k, i)) / dt;
-            % 
-            % temp_result(temp_index, :) = [lceAT(k, i+1), dlceAT(k, i+1), activefiberForce(k, i+1), ... 
-            %     passivefiberForce(k, i+1), fiberForce(k, i+1), tendonForce(k, i+1), L_mt(k, i+1)];
-            % 
-            % temp_index = temp_index + 1;
         end          
 
-        % patch_result{pnum, k} = temp_result;
         patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
         temp_result = loaded.temp_result;
    
-        % sig_out(k, :)   = patch_result{pnum, k}(cutpoint:end-1, 7);
         sig_out(k, :)   = temp_result(cutpoint:end-1, 5);
         
         A_fft           = fft(sig_in(k, cutpoint:end-1)); 
@@ -509,7 +464,6 @@ for file_idx = 1 : length(L_mn0_values)
     
     fullPath = fullfile(saveFolder1, fileName);
 
-    % savingdata_time = patch_result{file_idx};
     savingdata_time = cell(1, freq_len);
     
     for k = 1 : freq_len
@@ -570,14 +524,6 @@ for fnum = 1 : pnum - 1
 
     mag_dB = 20 * log10(bode_mag);
     omega = 2 * pi * bode_freq; % Frequency (rad/s)
-
-    % Generate complex response for FRD
-    % bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
-    % data = frd(bode_response, omega);
-    % 
-    % sys = tfest(data, 2);
-    % [wn, zeta] = damp(sys);
-    % nat_freq_Hz = wn(1) / (2 * pi);
 
     subplot(2, 1, 1);
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
