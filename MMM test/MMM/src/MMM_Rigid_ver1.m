@@ -153,7 +153,7 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat'); 
 end
 
 %% Main Calculation
@@ -303,7 +303,6 @@ while (index_L <= aim_Lnum)
         for i = 1 : time_len - 1                                                            % Explicit method
 
             pathState        = [V_mt(k, i); L_mt(k, i)];
-            % muscleState      = [dlceAT(k, i); lceAT(k, i)];
             muscleState      = lceAT(k, i);
 
             mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
@@ -319,11 +318,6 @@ while (index_L <= aim_Lnum)
             activefiberForce(k, i+1)  = mtInfo.muscleDynamicsInfo.activeFiberForce;
             passivefiberForce(k, i+1) = mtInfo.muscleDynamicsInfo.passiveFiberForce;
 
-            % lceAT(k, i+1)             = mtInfo.state.value;
-            % dlceAT(k, i+1)            = mtInfo.state.derivative;
-            % lceAT(k, i+1)             = L_mt(k, i+1) - ltSlk;            
-            % lceAT(k, i+1)             = mtInfo.muscleLengthInfo.fiberLengthAlongTendon;
-            % dlceAT(k, i+1)            = mtInfo.fiberVelocityInfo.fiberVelocityAlongTendon;
             alpha(k, i+1)             = mtInfo.muscleLengthInfo.pennationAngle;
 
             tendon_length(k, i+1)     = mtInfo.muscleLengthInfo.tendonLength;
@@ -335,7 +329,6 @@ while (index_L <= aim_Lnum)
 
             dlceAT(k, i+1)  = mtInfo.state.derivative;
             lceAT(k, i+1)   = L_mt(k, i+1) - ltSlk;
-            % lceAT(k, i+1)   = mtInfo.state.value;
 
             temp_result(temp_index, :) = [lceAT(k, i+1), dlceAT(k, i+1), activefiberForce(k, i+1), ... 
                 passivefiberForce(k, i+1), fiberForce(k, i+1), tendonForce(k, i+1), L_mt(k, i+1)];
@@ -343,14 +336,12 @@ while (index_L <= aim_Lnum)
             temp_index = temp_index + 1;
         end          
 
-        % patch_result{pnum, k} = temp_result;
         patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
         temp_result = loaded.temp_result;
    
-        % sig_out(k, :)   = patch_result{pnum, k}(cutpoint:end-1, 5);
         sig_out(k, :)   = temp_result(cutpoint:end-1, 5);
         
 
@@ -500,12 +491,12 @@ for fnum = 1 : pnum - 1
     omega = 2 * pi * bode_freq; % Frequency (rad/s)
 
     % Generate complex response for FRD
-    bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
-    data = frd(bode_response, omega);
-
-    sys = tfest(data, 2);
-    [wn, zeta] = damp(sys);
-    nat_freq_Hz = wn(1) / (2 * pi);
+    % bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
+    % data = frd(bode_response, omega);
+    % 
+    % sys = tfest(data, 2);
+    % [wn, zeta] = damp(sys);
+    % nat_freq_Hz = wn(1) / (2 * pi);
 
     subplot(2, 1, 1);
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
@@ -547,117 +538,6 @@ xlabel('Frequency (Hz)');
 ylabel('THD (dB)'); ylim([-60 0]);
 grid on;
 
-%% Patching (Multi)
-% TO VISUALIZE ALL THE PATCHES
-
-% L_mn_patch_midval = L_mn0_values;
-% V_m_patch_midval  = V_m0_values;
-% 
-% l_pnum  = length(L_mn_patch_midval);
-% v_pnum  = length(V_m_patch_midval);
-% 
-% grid_interval = 150;
-% 
-% fprintf("\nGenerating F-L-V patch data...\n");
-% 
-% temp = cell(v_pnum, l_pnum);
-% 
-% for l = 1 : l_pnum
-%     for v = 1 : v_pnum
-%         L_mn_patch_temp_range = linspace(L_mn_patch_midval(l) - L_range, L_mn_patch_midval(l) + L_range, grid_interval);
-%         V_m_patch_temp_range = linspace(V_m_patch_midval(v) - V_range, V_m_patch_midval(v) + V_range, grid_interval);
-% 
-%         [L_mn_patch_temp, V_m_patch_temp] = meshgrid(L_mn_patch_temp_range, V_m_patch_temp_range);
-% 
-%         F_patch_temp = zeros(grid_interval, grid_interval);
-% 
-%         for i = 1 : grid_interval
-%             for j = 1 : grid_interval
-%                 lce_temp = L_mn_patch_temp(i, j) * lceOpt;
-%                 dlce_temp = V_m_patch_temp(i, j) * maximumNormalizedFiberVelocity * lceOpt;
-% 
-%                 pathState = [dlce_temp; lce_temp * cos(alphaOpt) + ltSlk];
-%                 muscleState = [dlce_temp; lce_temp];
-% 
-%                 mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
-%                     0.5, ...
-%                     pathState, ...
-%                     muscleState, ...
-%                     muscleArch, ...
-%                     normMuscleCurves, ...
-%                     modelConfig);
-% 
-%                 F_patch_temp(i, j) = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-%             end
-%         end
-% 
-%         temp{v, l} = {L_mn_patch_temp, V_m_patch_temp, F_patch_temp};
-%     end
-% end
-% 
-% figure();
-% for i = 1 : l_pnum
-%     for j = 1 : v_pnum
-%         temp_data = temp{j, i};
-%         scatter3(temp_data{1}, temp_data{2}, temp_data{3}, 2, 'MarkerEdgeColor', 'none', ...
-%                  'MarkerFaceColor', 'blue', 'MarkerFaceAlpha', 0.1);
-%         hold on;
-%     end
-% end
-% 
-% colors = jet(freq_len);
-% count = 0; 
-% 
-% for p_num_ = 1 : pnum - 1
-%     for k = 1 : freq_len
-%         color = colors(k, :);
-% 
-%         plot3(patch_result{p_num_, k}(:, 1) / lceOpt, patch_result{p_num_, k}(:, 2), patch_result{p_num_, k}(:, 5), ...
-%               'o', 'Color', color, 'MarkerSize', 2);
-%         count = count + 1;
-% 
-%         hold on;
-%     end
-% end
-% 
-% L_mn_baseline_range = linspace(0.2, 1.8, 100); 
-% V_m_baseline_range = linspace(-2.0, 2.0, 100); 
-% 
-% [L_mn_grid, V_m_grid] = meshgrid(L_mn_baseline_range, V_m_baseline_range);
-% 
-% F_baseline_total_grid = zeros(size(L_mn_grid));
-% 
-% fprintf("\nCalculating Baseline F-L-V Surface...\n");
-% 
-% for i = 1 : size(L_mn_grid, 1)
-%     for j = 1 : size(L_mn_grid, 2)
-%         lce_temp = L_mn_grid(i, j) * lceOpt;
-%         dlce_temp = V_m_grid(i, j) * maximumNormalizedFiberVelocity * lceOpt;
-% 
-%         pathState = [dlce_temp; lce_temp * cos(alphaOpt) + ltSlk];
-%         muscleState = [dlce_temp; lce_temp];
-% 
-%         mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
-%             0.5, ...
-%             pathState, ...
-%             muscleState, ...
-%             muscleArch, ...
-%             normMuscleCurves, ...
-%             modelConfig);
-% 
-%         F_baseline_total_grid(i, j) = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-%     end
-% end
-% 
-% surf(L_mn_grid, V_m_grid, F_baseline_total_grid, 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-% xlabel('Normalized Muscle Length (L/L_{mo})', 'FontSize', 14);
-% ylabel('Muscle Velocity (V/V_{max})', 'FontSize', 14);
-% zlabel('Muscle Force (N)', 'FontSize', 14);
-% title('Baseline F-L-V Surface (Millard Model)', 'FontSize', 16);
-% grid on;
-% 
-% hold off;
-
 fs = 8000;
 freqs = [440, 880, 660]; 
 duration = 0.2;
@@ -667,8 +547,6 @@ for freq = freqs
     sound(y, fs);
     pause(duration); 
 end
-
-% profile viewer
 
 %% Functions
 
