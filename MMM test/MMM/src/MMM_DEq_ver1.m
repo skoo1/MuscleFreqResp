@@ -148,7 +148,7 @@ if ~exist('patch_result', 'dir')
 end
 
 if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');  % 디스크에 남은 파일 초기화
+    delete('patch_result/*.mat');
 end
 
 %% Main Calculation
@@ -316,11 +316,8 @@ while (index_L <= aim_Lnum)
             activefiberForce(k, i+1)  = mtInfo.muscleDynamicsInfo.activeFiberForce;
             passivefiberForce(k, i+1) = mtInfo.muscleDynamicsInfo.passiveFiberForce;
 
-            % lceAT(k, i+1)             = mtInfo.state.value;
             dlceAT(k, i+1)            = mtInfo.state.derivative;
             lceAT(k, i+1)             = lceAT(k, i) + dlceAT(k, i+1) * dt;            
-            % lceAT(k, i+1)             = mtInfo.muscleLengthInfo.fiberLengthAlongTendon;
-            % dlceAT(k, i+1)            = mtInfo.fiberVelocityInfo.fiberVelocityAlongTendon;
             alpha(k, i+1)             = mtInfo.muscleLengthInfo.pennationAngle;
 
             tendon_length(k, i+1)     = mtInfo.muscleLengthInfo.tendonLength;
@@ -336,14 +333,12 @@ while (index_L <= aim_Lnum)
             temp_index = temp_index + 1;
         end          
 
-        % patch_result{pnum, k} = temp_result;
         patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
         temp_result = loaded.temp_result;
    
-        % sig_out(k, :)   = patch_result{pnum, k}(cutpoint:end-1, 5);
         sig_out(k, :)   = temp_result(cutpoint:end-1, 5);
         
         A_fft           = fft(sig_in(k, cutpoint:end-1));
@@ -367,20 +362,20 @@ while (index_L <= aim_Lnum)
         fprintf("\n-----------------------------\n\n");
 
         % THD Calculation
-        N_fft       = n_f;                                                % 실제 FFT 길이
-        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              % 출력신호 절반 구간 파워 스펙트럼
+        N_fft       = n_f;                                                
+        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;            
 
-        basic_idx   = idx(k);                                             % 기본파 인덱스
-        basic_power = P_out(basic_idx);                                   % 기본파 파워
+        basic_idx   = idx(k);                                            
+        basic_power = P_out(basic_idx);                                   
 
         har_idx     = 2 * basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             % 범위 초과 방지
+        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             
 
         if basic_power ~= 0
             har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         % THD = sqrt(고조파 파워합) / sqrt(기본파 파워)
+            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);        
         else
-            THD_vals(k)  = NaN;                                         % 기본파가 너무 작으면 계산 불가
+            THD_vals(k)  = NaN;                                         
         end
     end
 
