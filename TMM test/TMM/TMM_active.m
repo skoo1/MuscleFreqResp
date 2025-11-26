@@ -1,4 +1,4 @@
-% By Minseung Kim, 2025-08-13
+% By Minseung Kim, 2025-11-26
 
 clear;
 clc;
@@ -12,11 +12,10 @@ L_mo    = 0.05;                                                              % O
 L_ts    = 0.25;                                                              % Tendon slack length               (m)     Pervious one was 0.25
 F_mo    = 3549.0;                                                            % Maximum muscle isometric force    (N)     Previous one was 3549
 % F_mo    = 2484.3;
-Alpha   = 0.4363;                                                            % Pennationangle                    (rad)
-% Alpha   = 0.3050;
+Alpha   = 0.4363;                                            
 
-% mass    = 3000000.0;                                                       % Mass of the muscle                (kg)
-mass    = 0.3;
+mass    = 3000000.0;                                                         % Mass of the muscle                (kg)
+% mass  = 0.3;
 damp    = 0.0;
 k_temp  = 0.0;                                                               % Stiffness                 
 
@@ -75,18 +74,17 @@ Tau_d   = 0.04;                                                               % 
 V_mmax  = 10 * L_mo;                                                          % Maximum muscle contraction velocity expressed in optimal fiber lengths per second
 % V_mmax  = 8 * L_mo;
 
-%% Generating patch_info.txt
+%% Generating patch condition and temporal data deposit (patch_result)
 
-% filename        = 'patch_info.txt';
-filename        = 'single_patch.txt';
+filename        = 'patch_info.txt';
 
 fileID          = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
 % L_mn0_values    = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4];
 % L_mn0_values    = [0.6, 0.8, 1.0, 1.2, 1.4];
-L_mn0_values    = [1.0];
-V_m0_values     = [0.0];
+L_mn0_values    = [1.0]; %%%%%%%% main에서 돌릴때 지정할 수 있도록
+V_m0_values     = [0.0]; %%%%%%%% main에서 돌릴때 지정할 수 있도록
 
 for file_i = 1 : length(L_mn0_values)
     for file_j = 1 : length(V_m0_values)
@@ -106,13 +104,11 @@ end
 
 %% Main Calculation
 
-patch_info = readtable('single_patch.txt');
+patch_info = readtable('patch_info.txt');
 
 index_L = 1;
 index_V = 1;
 pnum    = 1;
-
-correct_signal = 0;
 
 L_range = 0.100;                                                                     % Muscle length +- range
 V_range = 0.100;                                                                     % Velocity +- range
@@ -152,15 +148,16 @@ while (index_L <= aim_Lnum)
     mod_L_mt0       = mod_L_m0 * cos(Alpha) + L_t0;
     F_mA0           = fse0 / cos(Alpha) - fpe0;
 
-    h0              = mod_L_m0 * sin(Alpha);
-
     % [ calculations ]
 
     totalTime    = 120;                                                                                                                                                                                                                                                                                   ;
     dt           = 0.001;
     time         = 0 : dt : (totalTime - dt);
+    steps        = 100;
+    freqlb       = 0.1;
+    freqhb       = 100;
 
-    frequencies  = logspace(-1, 2, 1000);                                              % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
+    frequencies  = logspace(log10(freqlb), log10(freqhb), steps);                                              % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
 
     freq_len     = length(frequencies);          
     
@@ -234,18 +231,18 @@ while (index_L <= aim_Lnum)
         
         temp_result     = NaN(time_len, 7);
         temp_index      = 1;
+
     
         for i = 1 : time_len - 1                                                                            % Explicit method
             start_      = 0.0;       
             error       = 1000;                                                                             % error should be less than 1e-10
-            error_velocity = 1000;
 
             end_        = 3.0;
 
             V_mt(k, 1)      = 0          + A_mt(k, 1)   * dt;                       
             L_mt(k, 1)      = mod_L_mt0  + V_mt(k, 1)   * dt; 
 
-            while ( abs(real(error)) > 1e-11)                                                               % --------------Bisection method---------------
+            while ( abs(real(error)) > 1e-10 )                                                              % --------------Bisection method---------------
                 L_mm = 1/2 * (start_ + end_);                                                               % normalized new muscle length (midpoint)
                 L_t(k, i+1)     = L_mt(k, i) - (L_mm * L_mo) * cos(Alpha);
                 V_m(k, i+1)     = ((L_mm - L_mn(k, i)) * L_mo / dt) / V_mmax;                               % new muscle velocity (explicit)
@@ -256,11 +253,7 @@ while (index_L <= aim_Lnum)
                 fpe  (k, i+1)   = passive_muscle_force_length_multiplier(L_mm);                             % new muscle passive force
                 F_mA (k, i+1)   = active_force(V_m(k, i+1), f_l(k, i+1), sig_in_a(k, i+1));
                 
-                temp_penn       = Alpha;
-                
-                kp              = 1.0;
-                ki              = 1.0;
-                kd              = 1.0;                   
+                temp_penn       = Alpha;               
 
                 error           = fse(k, i+1) - (fpe(k, i+1) + F_mA(k, i+1)) * cos(temp_penn);              % error for force equilbrium (muscle, tendon)
 
@@ -305,10 +298,6 @@ while (index_L <= aim_Lnum)
         F_fft           = fft(sig_out_clean);
 
         [~, idx(k)]     = min(abs(f - freq));
-    
-        if k == 1
-            aaa = 1;
-        end
 
         sin_f(k)        = freq;
         mag  (k)        = abs(F_fft(idx(k))) / abs(A_fft(idx(k)));
@@ -319,23 +308,6 @@ while (index_L <= aim_Lnum)
         toc;
  
         fprintf("\n-----------------------------\n\n");
-
-        % THD Calculationx
-        N_fft     = n_f;                                                
-        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              
-        
-        basic_idx = idx(k);                                             
-        basic_power = P_out(basic_idx);                                 
-        
-        har_idx = 2*basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx = har_idx(har_idx <= floor(N_fft/2) + 1);               
-        
-        if basic_power ~= 0
-            har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         
-        else
-            THD_vals(k)  = NaN;                                         
-        end
 
     end
 
@@ -365,7 +337,7 @@ end
 
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-saveFolder1 = 'G:\Research\TMM test\MUSCLETEST\TMM_result(nopenn)_KMS\beforeFFT';
+saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\TMM test\TMM\TMM_result\beforeFFT';
 
 if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
@@ -373,7 +345,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_0.3kg.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_0.3kg.mat']; %%%%%%%% mass 파일명에 들어가게
     
     fullPath = fullfile(saveFolder1, fileName);
 
@@ -388,7 +360,7 @@ for file_idx = 1 : length(L_mn0_values)
     save(fullPath, 'savingdata_time', '-v7.3');
 end
 
-saveFolder2 = 'G:\Research\TMM test\MUSCLETEST\TMM_result(nopenn)_KMS\afterFFT';
+saveFolder2 = 'C:\Users\user\Desktop\MuscleFreqResp-main\TMM test\TMM\TMM_result\afterFFT';
 
 if ~exist(saveFolder2, 'dir')
     mkdir(saveFolder2);
@@ -396,7 +368,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_0.3kg.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_0.3kg.mat']; %%%%%%%% mass 파일명에 들어가게
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -408,7 +380,7 @@ end
 %% Bode plots
 
 figure();
-sg              = sgtitle(sprintf('Bode plot of each conditions w/ u_{0} = %.2f', u0), 'FontSize', 18);
+sg              = sgtitle(sprintf('Bode plot w/ u_{0} = %.2f', u0), 'FontSize', 18);
 
 cm              = hsv(pnum - 1);
 cutoff_level    = -3;
@@ -442,16 +414,6 @@ for fnum = 1 : pnum - 1
 end
 
 hold off;
-
-disp('Natural frequencies for each patch: ');
-disp(nat_freqs);
-
-figure();
-semilogx(frequencies, 20*log10(THD_vals), 'k-o', 'MarkerSize', 4);
-title('Total Harmonic Distortion (THD)');
-xlabel('Frequency (Hz)');
-ylabel('THD (dB)'); ylim([-60 0]);
-grid on;
 
 %% Patching (Multi)
 % TO VISUALIZE ALL THE PATCHES
@@ -555,39 +517,6 @@ function input = sinwave(frq, t, a0, a, b)                                      
     input = (a + sin(2 * pi * frq * t + phase_shift) * b);
 end
 
-
-function reverse_Fext = rF(a, V_temp, L_mn0)
-    Gamma   = 0.45;                                                                 
-    K_pe    = 4.0;                                                                  
-    EPSmo   = 0.6; 
-    F_mo    = 3549.0;
-    Alpha   = 0.0872;
-    A_f     = 0.3;                                                                          
-    F_mnlen = 1.8;      
-
-    velocity_norm = V_temp / (0.25 + 0.75 * a);
-
-    if (V_temp <= 0) % To justify f_v
-        % Shortening
-        velocity_factor = (1 + velocity_norm) / (1 - velocity_norm / A_f);                  % Same as force-velocity multiplier (fv)
-    else
-        % Lengthening
-        someth = velocity_norm * (2 + 2 / A_f) / (F_mnlen - 1);
-        velocity_factor = (1 + F_mnlen * someth) / (1 + someth);
-    end
-
-    f_l = exp(-(L_mn0 - 1).^2 / Gamma);
-    f_v = velocity_factor;
-    fpe = (exp(K_pe * (L_mn0 - 1) / EPSmo) - 1) / (exp(K_pe) - 1);
-    
-    if (L_mn0 > 1) % To calculate F_ext
-        reverse_Fext = (F_mo * (a * f_l * f_v + fpe)) * cos(Alpha);
-    else
-        reverse_Fext = (F_mo * a * f_l * f_v) * cos(Alpha);
-    end
-end
-
-
 function Tau = get_Tau(a, u)
     Tau_a   = 0.01;
     % Tau_a   = 0.005;
@@ -663,4 +592,9 @@ function F_t = tendon_force_multiplier(eps_t)
     else
         F_t = K_lin * (eps_t - EPSttoe) + F_ttoe;
     end 
+end
+
+function f_l0 = active_muscle_force_length_multiplier(L_mn)                                 
+    Gamma = 0.45;                                                                           % Equation 4 of thelen (2003)
+    f_l0 = exp(-((L_mn - 1).^2) / Gamma);
 end
