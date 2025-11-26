@@ -25,7 +25,7 @@ MATLAB implementation based on:
 
 - To ensure correctness, core curve functions (F–L, F–V, passive elements, activation dynamics) were reproduced from the original formulation.
 
-- For transparency, we include comparison plots for F–L, F–V, and combined F–L–V relationships in the `supplementary/` directory.
+- For transparency, we include comparison plots for F–L, F–V, and combined F–L–V relationships in the `supplementary/` directory. (ongoing)
   
 - These checks confirm that the implemented equations match the expected behavior of the published model.
 
@@ -50,15 +50,26 @@ Reference:
 
 The main MATLAB scripts for frequency response analysis and Bode plot generation were developed by the present authors for this study.
 
-## **1. Structures**
+## **1. File structure**
 
-<img width="1163" height="627" alt="image" src="https://github.com/user-attachments/assets/191a3087-b5ef-4843-be54-fc5e27ef3e9c" />
+<img width="1198" height="670" alt="image" src="https://github.com/user-attachments/assets/00258f01-c6f7-4d42-9305-14c34de1b87e" />
 
 ## **2. How to run**
 
-Please follow the steps below to run the simulation:
+### Please follow the steps below to run the simulation.
+> **Note:** Make sure that the repository paths are correctly set before running the code.
 
-(...)
+#### 1. Run `MFR_main.m`
+#### 2. Choose the simulation mode and enter the muscle model parameters  
+- Default values correspond to the human soleus muscle (OpenSim Gait2392 model)
+
+#### 3. Set the simulation configurations
+
+#### 4. After the simulation finishes, all Bode plot data points are saved in:  
+- `(TMM or MMM)_result/afterFFT`
+
+#### 5. To visualize the Bode plot under various conditions, run:  
+- `MFR_Bode_viewer.m`
 
 ---
 
