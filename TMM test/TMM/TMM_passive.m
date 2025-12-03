@@ -1,24 +1,27 @@
-% By Minseung Kim, 2025-04-10
-% Testing passive impedance of the muscle model
+% By Minseung Kim, 2025-12-01
 
-clear;
-clc;
+% clear;
+% clc;
 global F_mnlen K_pe Gamma A_f EPSmo EPSto EPSttoe F_ttoe K_toe K_lin Tau_a Tau_d V_mmax Alpha;
 
 %% Problem Assumptions
 
 % [ Properties of Soleus muscle ]
 
-L_mo    = 0.05;                                                              % Optimal muscle fiber length       (m)     Previous one was 0.05
-L_ts    = 0.25;                                                              % Tendon slack length               (m)     Pervious one was 0.25
-F_mo    = 3549.0;                                                            % Maximum muscle isometric force    (N)     Previous one was 3549
+L_mo    = 0.05;                                                                % Optimal muscle fiber length       (m)     Previous one was 0.05
+L_ts    = 0.25;                                                                % Tendon slack length               (m)     Pervious one was 0.25
+F_mo    = 3549.0;                                                              % Maximum muscle isometric force    (N)     Previous one was 3549
 % F_mo    = 2484.3;
-Alpha   = 0.4363;                                                            % Pennationangle                    (rad)
+Alpha   = 0.4363;                                                              % Pennationangle                    (rad)
 % Alpha   = 0.3050;
 
-% mass    = 3000000.0;                                                       % Mass of the muscle                (kg)
-mass    = 30.0;
-damp    = 1000.0;
+if ~exist('mass','var')
+    mass = 0.0;                                                          % Mass of the muscle                (kg)
+end
+
+if ~exist('damp','var')
+    damp = 0.0;
+end
       
 % -----------------------------------------------------------
 
@@ -77,8 +80,7 @@ V_mmax  = 10 * L_mo;                                                          % 
 
 %% Generating patch_info.txt
 
-% filename        = 'patch_info.txt';
-filename        = 'single_patch.txt';
+filename        = 'patch_info.txt';
 
 fileID          = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
@@ -95,17 +97,18 @@ end
 
 fclose(fileID);
 
-if ~exist('patch_result', 'dir')
-    mkdir('patch_result');
+thisDir  = fileparts(mfilename('fullpath'));
+patchDir = fullfile(thisDir, 'patch_result');
+
+if ~exist(patchDir, 'dir')
+    mkdir(patchDir);
 end
 
-if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');
-end
+delete(fullfile(patchDir, '*.mat'));
 
 %% Main Calculation
 
-patch_info = readtable('single_patch.txt');
+patch_info = readtable('patch_info.txt');
 
 index_L  = 1;
 index_mt = 1;
@@ -188,14 +191,32 @@ while (index_mt <= aim_Ltnum)
 
     % [ calculations ]
 
-    totalTime    = 30;                                                                                                                                                                                                                                                                                   ;
-    dt           = 0.001;
+    if ~exist('totalTime','var')
+        totalTime = 120;
+    end               
+
+    if ~exist('dt','var')
+        dt      = 0.001;
+    end
+    
     time         = 0 : dt : (totalTime - dt);
 
-    frequencies  = logspace(-1, 2, 100);                                              % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
-
-    freq_len     = length(frequencies);          
+    if ~exist('steps','var')
+        steps   = 400;
+    end                                                                               % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
     
+    if ~exist('freqlb','var')
+        freqlb  = 0.1;                                                                  % Lower bound of the excitation frequency
+    end
+
+    if ~exist('freqhb','var')
+        freqhb  = 100;                                                                  % Upper bound of the excitation frequency
+    end
+
+    frequencies  = logspace(log10(freqlb), log10(freqhb), steps);          
+    
+    freq_len     = length(frequencies);
+
     time_len     = length(time);
     
     xArray       = zeros(freq_len, time_len);                                         % Displacement array
@@ -249,6 +270,13 @@ while (index_mt <= aim_Ltnum)
     THD_vals        = zeros(1, freq_len, 'single');
     
     for k = 1 : length(frequencies)
+
+        % Check 'STOP' sign from GUI (MFR_main.m)
+        if evalin('base','exist(''MFR_STOP'',''var'') && MFR_STOP')
+            builtin('error','Simulation stopped by user via GUI.');
+        end
+        drawnow limitrate;
+
         tic;
 
         fprintf("<strong>[ Patch number: %d ]\n\n</strong>", pnum);
@@ -263,7 +291,7 @@ while (index_mt <= aim_Ltnum)
         A_mt(k, :)          = -amp * (2 * pi * freq)^2 * sin(2 * pi * freq * time);
 
         sig_in(k, :)        = L_mt_preset(k, :);
-        u                   = 0.5;
+        u                   = 0.0;
               
         temp_result         = NaN(time_len, 7);
         temp_index          = 1;
@@ -316,7 +344,7 @@ while (index_mt <= aim_Ltnum)
             
         end          
 
-        patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
+        patch_filename = fullfile(patchDir, sprintf('p%d_k%d.mat', pnum, k));
         save(patch_filename, 'temp_result', '-v7.3');
         
         loaded = load(patch_filename, 'temp_result');
@@ -344,8 +372,8 @@ while (index_mt <= aim_Ltnum)
  
         fprintf("\n-----------------------------\n\n");
 
-        N_fft     = n_f;                                               
-        P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;             
+        % N_fft     = n_f;                                               
+        % P_out     = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;             
 
     end
 
@@ -375,15 +403,25 @@ end
 
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-saveFolder1 = 'G:\Research\TMM test\MUSCLETEST\TMM_result(nopenn)_KMS\beforeFFT';
+saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\TMM test\TMM\TMM_result\beforeFFT';
 
 if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
 end
 
+if exist('mass','var')
+    if abs(mass - 3e6) < 1e-6     % 3000000 kg → static
+        mass_label = 'isometric';
+    else
+        mass_label = [num2str(mass) 'kg'];
+    end
+else
+    mass_label = 'unknownMass';
+end
+
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wd1000_bF_passive_30kg.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_passive_' mass_label '.mat'];
     
     fullPath = fullfile(saveFolder1, fileName);
 
@@ -398,7 +436,7 @@ for file_idx = 1 : length(L_mn0_values)
     save(fullPath, 'savingdata_time', '-v7.3');
 end
 
-saveFolder2 = 'G:\Research\TMM test\MUSCLETEST\TMM_result(nopenn)_KMS\afterFFT';
+saveFolder2 = 'C:\Users\user\Desktop\MuscleFreqResp-main\TMM test\TMM\TMM_result\afterFFT';
 
 if ~exist(saveFolder2, 'dir')
     mkdir(saveFolder2);
@@ -406,7 +444,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wd1000_aF_passive_30kg.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_passive_' mass_label '.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -453,28 +491,28 @@ end
 hold off;
 
 %% Extra figure extracting
-target_freq_num = 1;
-
-figure();
-subplot(2, 1, 1);
-plot(time, savingdata_time{1, target_freq_num}(:, 4) * F_mo); title('Fiber Passive Force'); ylabel('(N)');
-
-subplot(2, 1, 2);
-plot(time, savingdata_time{1, target_freq_num}(:, 6) * F_mo); title('Tendon Force'); ylabel('(N)');
-
-
-figure();
-subplot(3, 1, 1);
-plot(time, savingdata_time{1, target_freq_num}(:, 1) * L_mo); title('Fiber Length'); ylabel('(m)');
-
-subplot(3, 1, 2);
-plot(time, L_t(target_freq_num, :)'); title('Tendon Length'); ylabel('(m)');
-
-subplot(3, 1, 3);
-plot(time, savingdata_time{1, target_freq_num}(:, 7)); title('Total Length'); ylabel('(m)');
-
-figure();
-plot(time, V_m(target_freq_num, :)); title('Fiber velocity'); ylabel('(m/s)');
+% target_freq_num = 1;
+% 
+% figure();
+% subplot(2, 1, 1);
+% plot(time, savingdata_time{1, target_freq_num}(:, 4) * F_mo); title('Fiber Passive Force'); ylabel('(N)');
+% 
+% subplot(2, 1, 2);
+% plot(time, savingdata_time{1, target_freq_num}(:, 6) * F_mo); title('Tendon Force'); ylabel('(N)');
+% 
+% 
+% figure();
+% subplot(3, 1, 1);
+% plot(time, savingdata_time{1, target_freq_num}(:, 1) * L_mo); title('Fiber Length'); ylabel('(m)');
+% 
+% subplot(3, 1, 2);
+% plot(time, L_t(target_freq_num, :)'); title('Tendon Length'); ylabel('(m)');
+% 
+% subplot(3, 1, 3);
+% plot(time, savingdata_time{1, target_freq_num}(:, 7)); title('Total Length'); ylabel('(m)');
+% 
+% figure();
+% plot(time, V_m(target_freq_num, :)); title('Fiber velocity'); ylabel('(m/s)');
 
 
 %% Functions
