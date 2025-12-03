@@ -25,10 +25,6 @@ MATLAB implementation based on:
 
 - To ensure correctness, core curve functions (F–L, F–V, passive elements, activation dynamics) were reproduced from the original formulation.
 
-- For transparency, we include comparison plots for F–L, F–V, and combined F–L–V relationships in the `supplementary/` directory. (ongoing)
-  
-- These checks confirm that the implemented equations match the expected behavior of the published model.
-
 ## **2. Millard Muscle Model (MMM)**  
 The Millard model is implemented using the official MATLAB port distributed by the original author:
 
@@ -60,16 +56,21 @@ The main MATLAB scripts for frequency response analysis and Bode plot generation
 > **Note:** Make sure that the repository paths are correctly set before running the code.
 
 #### 1. Run `MFR_main.m`
-#### 2. Choose the simulation mode and enter the muscle model parameters  
+#### 2. Choose the simulation mode and adjust the simulation configurations
 - Default values correspond to the human soleus muscle (OpenSim Gait2392 model)
 
-#### 3. Set the simulation configurations
-
-#### 4. After the simulation finishes, all Bode plot data points are saved in:  
+#### 3. After the simulation finishes, all Bode plot data points are saved in:  
 - `(TMM or MMM)_result/afterFFT`
 
-#### 5. To visualize the Bode plot under various conditions, run:  
-- `MFR_Bode_viewer.m`
+#### 4. To visualize the Bode plot under various conditions, press the 'Open Bode viewer' button on the GUI:  
+- Multiple result files can be selected
+- The selected files are passed to `MFR_Bode_viewer.m` to generate the corresponding Bode plots
+
+### GUI Sample
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/54e6c0e2-122b-405d-8b79-0c89e7f92fd5" width="700">
+</p>
 
 ---
 
@@ -79,6 +80,6 @@ The main MATLAB scripts for frequency response analysis and Bode plot generation
 - Minseung Kim, Ph.D. Student (KAIST)
 
 ## Revision Notes
-- August 2025: Implementation
-- August 2025: Edit Readme, main.m, etc.
-- November 2025: Debugging a code run error
+- August 2025: Initial implementation
+- August 2025: README and main script update
+- November 2025: Debugged runtime errors
