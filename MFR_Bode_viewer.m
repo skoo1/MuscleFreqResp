@@ -1,22 +1,45 @@
 %% Descriptions
 % By Minseung Kim, 2024-11-01
+% Another revision at 2025-11-27
 
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-clc; clear;
+clc; 
 
-n           = input('Enter the number of files to load: ');
-datapaths   = cell(n, 1); 
-fileNames   = cell(n, 1);
+% clear;
 
-% Example:: datapath1 = 'C:\Users\Minseung Kim\Desktop\Github\TMM test\TMM\TMM_result\afterFFT';
-% Example:: fileName1 = '1_0.5_sol_YB_wod_aF_n.mat'; 
+if evalin('base','exist(''GUI_Bode_files'',''var'')')
+    GUI_Bode_files = evalin('base','GUI_Bode_files');
 
-for i = 1 : n
-    datapaths{i} = input(['Enter path for file ' num2str(i) ': '], 's');
-    fileNames{i} = input(['Enter name for file ' num2str(i) ': '], 's');
+    if ischar(GUI_Bode_files)
+        GUI_Bode_files = {GUI_Bode_files};
+    end
+
+    n         = numel(GUI_Bode_files);
+    datapaths = cell(n,1);
+    fileNames = cell(n,1);
+
+    for i = 1:n
+        [dp, fn, ext] = fileparts(GUI_Bode_files{i});
+        datapaths{i} = dp;
+        fileNames{i} = [fn ext];
+    end
+
+else
+    n           = input('Enter the number of files to load: ');
+    datapaths   = cell(n, 1); 
+    fileNames   = cell(n, 1);
+    
+    % Example:: datapath1 = 'C:\Users\Minseung Kim\Desktop\Github\TMM test\TMM\TMM_result\afterFFT';
+    % Example:: fileName1 = '1_0.5_sol_YB_wod_aF_n.mat'; 
+    
+    for i = 1 : n
+        datapaths{i} = input(['Enter path for file ' num2str(i) ': '], 's');
+        fileNames{i} = input(['Enter name for file ' num2str(i) ': '], 's');
+    end
 end
+%%
 
 sin_f_data      = cell(n, 1);
 mag_data        = cell(n, 1);
@@ -42,9 +65,30 @@ for i = 1 : n
     data                = load(filePath);
 
     savingdata_freq     = data.savingdata_freq;
-    sin_f_data{i}       = savingdata_freq{1};
-    mag_data{i}         = savingdata_freq{2};
-    phase_data{i}       = savingdata_freq{3};
+    
+    if istable(savingdata_freq)
+        sin_f_data{i}   = savingdata_freq{:, 1};   % freq
+        mag_data{i}     = savingdata_freq{:, 2};   % mag
+        phase_data{i}   = savingdata_freq{:, 3};   % phase
+        
+    elseif iscell(savingdata_freq)
+        sin_f_data{i}   = savingdata_freq{1};
+        mag_data{i}     = savingdata_freq{2};
+        phase_data{i}   = savingdata_freq{3};
+        
+    elseif isnumeric(savingdata_freq)
+        if size(savingdata_freq,2) < 3
+            error('savingdata_freq (numeric) must have at least 3 columns, but size is %dx%d.', ...
+                  size(savingdata_freq,1), size(savingdata_freq,2));
+        end
+
+        sin_f_data{i}  = savingdata_freq(:, 1);
+        mag_data{i}    = savingdata_freq(:, 2);
+        phase_data{i}  = savingdata_freq(:, 3);
+
+    else
+        error('Unsupported savingdata_freq type: %s', class(savingdata_freq));
+    end
     
     parts               = split(fileNames{i}, '_');
     L_mn0_values(i)     = str2double(parts{1});
