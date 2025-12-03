@@ -1,7 +1,7 @@
 % By Minseung Kim, 2025-11-26
 
-clear;
-clc;
+% clear;
+% clc;
 global F_mnlen K_pe Gamma A_f EPSmo EPSto EPSttoe F_ttoe K_toe K_lin Tau_a Tau_d V_mmax Alpha;
 
 %% Problem Assumptions
@@ -14,13 +14,17 @@ F_mo    = 3549.0;                                                            % M
 % F_mo    = 2484.3;
 Alpha   = 0.4363;                                            
 
-mass    = 3000000.0;                                                         % Mass of the muscle                (kg)
-% mass  = 0.3;
-damp    = 0.0;
+if ~exist('mass','var')
+    mass = 3000000.0;                                                        % Mass of the muscle                (kg)
+end
+
+if ~exist('damp','var')
+    damp = 0.0;
+end
+
 k_temp  = 0.0;                                                               % Stiffness                 
 
 % -----------------------------------------------------------
-
 % [ Properties of Gastrocnemius medialis muscle ]
 
 % L_mo    = 0.06;                                                              % Optimal muscle fiber length       (m)     Previous one was 0.05
@@ -81,10 +85,13 @@ filename        = 'patch_info.txt';
 fileID          = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
-% L_mn0_values    = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4];
-% L_mn0_values    = [0.6, 0.8, 1.0, 1.2, 1.4];
-L_mn0_values    = [1.0]; %%%%%%%% main에서 돌릴때 지정할 수 있도록
-V_m0_values     = [0.0]; %%%%%%%% main에서 돌릴때 지정할 수 있도록
+if ~exist('L_mn0_values','var')
+    L_mn0_values = [1.0];
+end
+
+if ~exist('V_m0_values','var')
+    V_m0_values = [0.0];
+end
 
 for file_i = 1 : length(L_mn0_values)
     for file_j = 1 : length(V_m0_values)
@@ -94,13 +101,14 @@ end
 
 fclose(fileID);
 
-if ~exist('patch_result', 'dir')
-    mkdir('patch_result');
+thisDir  = fileparts(mfilename('fullpath'));
+patchDir = fullfile(thisDir, 'patch_result');
+
+if ~exist(patchDir, 'dir')
+    mkdir(patchDir);
 end
 
-if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');
-end
+delete(fullfile(patchDir, '*.mat'));
 
 %% Main Calculation
 
@@ -110,8 +118,8 @@ index_L = 1;
 index_V = 1;
 pnum    = 1;
 
-L_range = 0.100;                                                                     % Muscle length +- range
-V_range = 0.100;                                                                     % Velocity +- range
+L_range = 0.100;                                                                       % Muscle length +- range
+V_range = 0.100;                                                                       % Velocity +- range
 
 aim_Lnum = length(L_mn0_values);
 aim_Vnum = length(V_m0_values);
@@ -122,11 +130,14 @@ visual_result = cell(aim_pnum, 1);
 
 while (index_L <= aim_Lnum)
 
-    const_b         = 0.01;
-    cutpoint        = 1;                                                              % cutpoint = 1 means no data cutting
+    if ~exist('const_b','var')
+        const_b = 0.01;                                                                % Fluctuation level of the excitation signals
+    end
 
-    L_mt0           = L_mo * cos(Alpha) + L_ts;                                                    % muscle-tendon length
-    V_mt0           = 0;                                                              % muscle-tendon velocity
+    cutpoint        = 1;                                                               % cutpoint = 1 means no data cutting
+
+    L_mt0           = L_mo * cos(Alpha) + L_ts;                                        % Length of muscle-tendon complex unit
+    V_mt0           = 0;                                                               % Velocity of muscle-tendon complex unit
         
     mod_V_m0        = V_m0_values(index_V);
     mod_L_mn0       = L_mn0_values(index_L);
@@ -136,7 +147,9 @@ while (index_L <= aim_Lnum)
     f_l0            = active_muscle_force_length_multiplier(mod_L_mn0);                % active force-length scale factor 
     fpe0            = passive_muscle_force_length_multiplier(mod_L_mn0);               % normalized muscle passive force
 
-    u0              = 0.5;
+    if ~exist('u0','var')
+        u0 = 0.5;                                                                      % Initial excitation value (0-1)
+    end
 
     F_ext           = F_mo * (u0 * f_l0 + fpe0) * cos(Alpha); 
 
@@ -148,16 +161,29 @@ while (index_L <= aim_Lnum)
     mod_L_mt0       = mod_L_m0 * cos(Alpha) + L_t0;
     F_mA0           = fse0 / cos(Alpha) - fpe0;
 
-    % [ calculations ]
+    if ~exist('totalTime','var')
+        totalTime = 120;
+    end            
+    
+    if ~exist('dt','var')
+        dt = 0.001;
+    end
 
-    totalTime    = 120;                                                                                                                                                                                                                                                                                   ;
-    dt           = 0.001;
-    time         = 0 : dt : (totalTime - dt);
-    steps        = 100;
-    freqlb       = 0.1;
-    freqhb       = 100;
+    time   = 0 : dt : (totalTime - dt);
 
-    frequencies  = logspace(log10(freqlb), log10(freqhb), steps);                                              % Sine-wave frequency array <- To supply the input signal on a per-single-frequency basis
+    if ~exist('steps','var')
+        steps = 400;
+    end
+
+    if ~exist('freqlb','var')
+        freqlb = 0.1;                                                                  % Lower bound of the excitation frequency
+    end
+
+    if ~exist('freqhb','var')
+        freqhb = 100;                                                                  % Upper bound of the excitation frequency
+    end
+
+    frequencies  = logspace(log10(freqlb), log10(freqhb), steps);                      % Sine-wave frequency array
 
     freq_len     = length(frequencies);          
     
@@ -168,7 +194,6 @@ while (index_L <= aim_Lnum)
     aArray       = zeros(freq_len, time_len);                                          % Acceleration array (NOT AN ACTIAVTION)
     
     % [ initialization ]
-
     L_t          = ones(freq_len, time_len) .* L_t0;                                   % tendon length
     L_mn         = ones(freq_len, time_len) .* mod_L_mn0;                              % normalized muscle length
     Eps_t        = ones(freq_len, time_len) .* Eps_t0;                                 % tendon strain
@@ -200,10 +225,15 @@ while (index_L <= aim_Lnum)
     fprintf("-----------------------------\n\n");
     fprintf("[ Main Calculation started ] \n\n");
     fprintf("-----------------------------\n\n");
-
-    THD_vals        = zeros(1, freq_len, 'single');
     
     for k = 1 : length(frequencies)
+
+        % Check 'STOP' sign from GUI (MFR_main.m)
+        if evalin('base','exist(''MFR_STOP'',''var'') && MFR_STOP')
+            builtin('error','Simulation stopped by user via GUI.');
+        end
+        drawnow limitrate;
+
         tic;
 
         fprintf("<strong>[ Patch number: %d ]\n\n</strong>", pnum);
@@ -279,7 +309,7 @@ while (index_L <= aim_Lnum)
             temp_index = temp_index + 1;
         end          
 
-        patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
+        patch_filename = fullfile(patchDir, sprintf('p%d_k%d.mat', pnum, k));
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
@@ -308,7 +338,6 @@ while (index_L <= aim_Lnum)
         toc;
  
         fprintf("\n-----------------------------\n\n");
-
     end
 
     pha = unwrap(pha) * (180 / pi);
@@ -343,9 +372,19 @@ if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
 end
 
+if exist('mass','var')
+    if abs(mass - 3e6) < 1e-6     % 3000000 kg → isometric
+        mass_label = 'isometric';
+    else
+        mass_label = [num2str(mass) 'kg'];
+    end
+else
+    mass_label = 'unknownMass';
+end
+
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_0.3kg.mat']; %%%%%%%% mass 파일명에 들어가게
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_' mass_label '.mat'];
     
     fullPath = fullfile(saveFolder1, fileName);
 
@@ -368,7 +407,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_0.3kg.mat']; %%%%%%%% mass 파일명에 들어가게
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_' mass_label '.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
