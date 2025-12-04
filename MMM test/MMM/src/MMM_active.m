@@ -1,5 +1,5 @@
 % By Minseung Kim, 2024-12-27
-% 2025-12-01
+% 2025-12-04
 
 % clc;
 % clear;
@@ -162,8 +162,8 @@ index_L                 = 1;
 index_V                 = 1;
 pnum                    = 1;
 
-L_range                 = 0.100;                                                                     % Muscle length +- range
-V_range                 = 0.100;                                                                     % Velocity +- range
+L_range                 = 0.050;                                                                     % Muscle length +- range
+V_range                 = 0.050;                                                                     % Velocity +- range
 
 aim_Lnum                = length(L_mn0_values);
 aim_Vnum                = length(V_m0_values);
@@ -347,7 +347,6 @@ while (index_L <= aim_Lnum)
 
             dlceAT(k, i+1)            = mtInfo.state.derivative;
             lceAT(k, i+1)             = lceAT(k, i) + dlceAT(k, i+1) * dt;
-            
             alpha(k, i+1)             = mtInfo.muscleLengthInfo.pennationAngle;
 
             tendon_length(k, i+1)     = mtInfo.muscleLengthInfo.tendonLength;
