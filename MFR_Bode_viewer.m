@@ -1,4 +1,4 @@
-%% Descriptions 
+%% Descriptions
 % By Minseung Kim, 2024-11-01
 % Another revision at 2025-11-27
 
@@ -31,9 +31,6 @@ else
     datapaths   = cell(n, 1); 
     fileNames   = cell(n, 1);
     
-    % Example:: datapath1 = 'C:\Users\Minseung Kim\Desktop\Github\TMM test\TMM\TMM_result\afterFFT';
-    % Example:: fileName1 = '1_0.5_sol_YB_wod_aF_n.mat'; 
-    
     for i = 1 : n
         datapaths{i} = input(['Enter path for file ' num2str(i) ': '], 's');
         fileNames{i} = input(['Enter name for file ' num2str(i) ': '], 's');
@@ -59,6 +56,7 @@ last_part       = cell(n, 1);
 damping_types   = cell(n, 1);
 MMM_variations  = cell(n, 1);
 Model_names     = {'TMM', 'MMM', 'MMM-DEq', 'MMM-Rigid'};
+model_names     = cell(n, 1);
 
 for i = 1 : n
     filePath            = fullfile(datapaths{i}, fileNames{i});
@@ -100,6 +98,25 @@ for i = 1 : n
     last_part           = parts{end};
     variable_name       = extractBefore(last_part, '.mat');
     variable_names{i}   = variable_name;
+
+    fullpath = fullpaths{i};
+    [filepath, name, ext] = fileparts(fullpath);
+
+    thisModel = 'Unknown';
+
+    if endsWith(name, '_DEq')
+        thisModel = 'MMM-DEq';
+    elseif endsWith(name, '_Rigid')
+        thisModel = 'MMM-Rigid';
+    else
+        if contains(filepath, 'TMM', 'IgnoreCase', true)
+            thisModel = 'TMM';
+        elseif contains(filepath, 'MMM', 'IgnoreCase', true)
+            thisModel = 'MMM';
+        end
+    end
+
+    model_names{i} = thisModel;
 end
 
 %% Bode plots
@@ -234,7 +251,7 @@ nat_freqs = zeros(n, 1);
 lower_cutoff_freq = zeros(n, 1);
 
 hold on;
-for i = 1:n
+for i = 1 : n
     idx = i;
     freq_values = sin_f_data{idx};
     mag_values  = mag_data{idx};
@@ -273,6 +290,8 @@ for i = 1:n
 end
 
 [~, sorted_idx] = sort(lower_cutoff_freq, 'ascend');
+
+unique_models = unique(model_names);
 
 hold on;
 for i = 1 : n
@@ -317,8 +336,16 @@ for i = 1 : n
     patch(x_head, y_head, cm(idx,:), ...
           'EdgeColor', 'none', 'HandleVisibility','off');
 
-    text(x_mid, y_band + 3.5, ...
-         sprintf('L_{mn0} = %.2f, Bandwidth: %.2f Hz', L_mn0_values(idx), x2), ...
+    thisModel = model_names{idx};
+
+    if isscalar(unique_models)
+        label_str = sprintf('L_{mn0} = %.2f, Bandwidth: %.2f Hz', ...
+                            L_mn0_values(idx), x2);
+    else
+        label_str = sprintf('%s, Bandwidth: %.2f Hz', thisModel, x2);
+    end
+
+    text(x_mid, y_band + 3.5, label_str, ...
          'FontSize', 27, 'FontWeight', 'bold', ...
          'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
          'Color', 'k', 'HandleVisibility','off');
