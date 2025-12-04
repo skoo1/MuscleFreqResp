@@ -1,7 +1,10 @@
 % By Minseung Kim, 2024-12-27
-% profile on
-clc;
-clear;
+% 2025-12-04
+
+% clc;
+% clear;
+
+%%%%%% RIGID-TENDON MODEL %%%%%%%
 
 %% Problem Assumptions
 
@@ -55,7 +58,7 @@ if(flag_useArnold2010SoleusArchitecture == 1)
     ltSlk       = arnold2010LegArch.tendonSlackLength(idx_);
 
 else 
-    muscleName  = 'MMM';
+    muscleName  = 'MMM_Rigid';
     fiso        = 1;
     lceOpt      = 0.02;
     alphaOpt    = 30*(pi/180);
@@ -123,15 +126,19 @@ muscleArch.pennationAngleAtMinumumFiberLength = ...
 
 %% Generating patch_info.txt
 
-% filename                = 'patch_info.txt';
-filename                = 'single_patch.txt';
+filename                = 'patch_info.txt';
 
 fileID                  = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
-% L_mn0_values            = [0.6, 0.8, 1.0, 1.2, 1.4];
-L_mn0_values            = [1.0];
-V_m0_values             = [0.0];
+if ~exist('L_mn0_values','var')
+    L_mn0_values = [1.0];
+end
+
+if ~exist('V_m0_values','var')
+    V_m0_values = [0.0];
+end
+
 L_mt0_values            = [1.05];
 
 for file_i = 1 : length(L_mn0_values)
@@ -142,25 +149,26 @@ end
 
 fclose(fileID);
 
-if ~exist('patch_result', 'dir')
-    mkdir('patch_result');
+thisDir  = fileparts(mfilename('fullpath'));
+patchDir = fullfile(thisDir, 'patch_result');
+
+if ~exist(patchDir, 'dir')
+    mkdir(patchDir);
 end
 
-if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');
-end
+delete(fullfile(patchDir, '*.mat'));
 
 %% Main Calculation
 
-patch_info              = readtable('single_patch.txt');
+patch_info              = readtable('patch_info.txt');
 
 index_L                 = 1;
-index_mt = 1;
+index_mt                = 1;
 index_V                 = 1;
 pnum                    = 1;
 
-L_range                 = 0.100;                                                                     % Muscle length +- range
-V_range                 = 0.100;                                                                     % Velocity +- range
+L_range                 = 0.050;                                                                     % Muscle length +- range
+V_range                 = 0.050;                                                                     % Velocity +- range
 
 aim_Lnum                = length(L_mn0_values);
 aim_Ltnum               = length(L_mt0_values);
@@ -171,7 +179,7 @@ modelConfig.useElasticTendon    = 0;
 modelConfig.useFiberDamping     = 1;
 modelConfig.damping             = 0.1;
 modelConfig.minActivation       = 1e-10;
-modelConfig.iterMax             = 100000;
+modelConfig.iterMax             = 10000;
 modelConfig.tol                 = 1e-10;
 modelConfig.passiveOnlyMode     = true;
 
@@ -180,7 +188,7 @@ visual_result           = cell(aim_pnum, 1);
 
 while (index_L <= aim_Lnum)
 
-    const_b             = 0.01;
+    const_b             = 0.0;
     cutpoint            = 1;                                                              % cutpoint = 1 means no data cutting
         
     mod_V_m0            = V_m0_values(index_V);
@@ -194,7 +202,7 @@ while (index_L <= aim_Lnum)
 
     err = 1000;
 
-    while abs(real(err)) > 1e-11
+    while abs(real(err)) > 1e-10
         Lf_mid = 1/2 * (Lf_lower + Lf_upper);
 
         pathState   = [0; pre_L_mt0];
@@ -227,26 +235,47 @@ while (index_L <= aim_Lnum)
 
     fprintf("%d\n", mtInfo.muscleDynamicsInfo.activeFiberForce);
 
-    u0                  = 0;  
+    if ~exist('u0','var')
+        u0 = 0.0;                                                                      % Initial excitation value (0-1)
+    end
 
     pre_dlceAT0         = 0.0;
     pre_lceAT0          = Lf0;
 
-    % mass                = 3000000;           
-    mass                = 0.0;
+    if ~exist('mass','var')
+        mass = 0.0;                                                                 % Mass of the muscle                (kg)
+    end
 
-    % [ calculations ]
-    % Configuration for Proposal: totalTime = 120; frequencies = logspace(-1, 2, 400)
+    if ~exist('damp','var')
+        ext_damping = 0.0;
+    end
 
-    totalTime           = 10;                                                                                                                                                                                                                                                                                   ;
-    dt                  = 0.001;
-    time                = 0 : dt : (totalTime - dt);
-
-    frequencies         = logspace(-1, 2, 100);                                              
+    if ~exist('totalTime','var')
+        totalTime = 30;
+    end                                                                                                                                                                                                                                                                                         ;
     
+    if ~exist('dt','var')
+        dt = 0.001;
+    end
+
+    time      = 0 : dt : (totalTime - dt);
+
+    if ~exist('steps','var')
+        steps = 100;
+    end
+
+    if ~exist('freqlb','var')
+        freqlb = 0.1;                                                                  % Lower bound of the excitation frequency
+    end
+
+    if ~exist('freqhb','var')
+        freqhb = 100;                                                                  % Upper bound of the excitation frequency
+    end                           
+
+    frequencies         = logspace(log10(freqlb), log10(freqhb), steps);                                              
+
     freq_len            = length(frequencies);          
     time_len            = length(time);
-    ext_damping         = 0.0;
     
     % [ initialization ]
 
@@ -285,14 +314,19 @@ while (index_L <= aim_Lnum)
     v_ext               = zeros(freq_len, time_len); %%%
     a_ext               = zeros(freq_len, time_len); %%%
     mass_force          = zeros(freq_len, time_len);
-
-    THD_vals            = zeros(1, freq_len, 'single');
     
     fprintf("-----------------------------\n\n");
     fprintf("[ Main Calculation started ] \n\n");
     fprintf("-----------------------------\n\n");
     
     for k = 1 : length(frequencies)
+        
+        % Check 'STOP' sign from GUI (MFR_main.m)
+        if evalin('base','exist(''MFR_STOP'',''var'') && MFR_STOP')
+            builtin('error','Simulation stopped by user via GUI.');
+        end
+        drawnow limitrate;
+
         tic;
 
         fprintf("<strong>[ Patch number: %d ]\n\n</strong>", pnum);
@@ -357,14 +391,12 @@ while (index_L <= aim_Lnum)
             
         end          
 
-        % patch_result{pnum, k} = temp_result;
-        patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
+        patch_filename = fullfile(patchDir, sprintf('p%d_k%d.mat', pnum, k));
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
         temp_result = loaded.temp_result;
    
-        % sig_out(k, :)   = patch_result{pnum, k}(cutpoint:end-1, 7);
         sig_out(k, :)   = temp_result(cutpoint:end-1, 5);
         
         A_fft           = fft(sig_in(k, cutpoint:end-1)); 
@@ -387,22 +419,6 @@ while (index_L <= aim_Lnum)
  
         fprintf("\n-----------------------------\n\n");
 
-        % THD Calculation
-        N_fft       = n_f;                                               
-        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              
-        
-        basic_idx   = idx(k);                                           
-        basic_power = P_out(basic_idx);                                   
-        
-        har_idx     = 2 * basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             
-        
-        if basic_power ~= 0
-            har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         
-        else
-            THD_vals(k)  = NaN;                                         
-        end
     end
 
     pha = unwrap(pha) * (180 / pi);
@@ -431,7 +447,7 @@ end
 
 % Format:: MMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-saveFolder1 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\beforeFFT';
+saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\beforeFFT';
 
 if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
@@ -439,7 +455,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_passive_0kg_Rigid.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_passive_Rigid.mat'];
     
     fullPath = fullfile(saveFolder1, fileName);
 
@@ -455,7 +471,7 @@ for file_idx = 1 : length(L_mn0_values)
     save(fullPath, 'savingdata_time', '-v7.3');
 end
 
-saveFolder2 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\afterFFT';
+saveFolder2 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\afterFFT';
 
 if ~exist(saveFolder2, 'dir')
     mkdir(saveFolder2);
@@ -463,7 +479,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_passive_0kg_Rigid.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_passive_Rigid.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -475,15 +491,15 @@ end
 
 %% Debugging plot
 
-target_fnum = 1;
-
-figure(); plot(time, lceAT(target_fnum, :) ./ cos(alpha(target_fnum, :))); title('Fiber length along Tendon');
-
-figure(); plot(time, tendon_length(target_fnum, :)); title('Tendon length');
-
-figure(); plot(time, fiberForce(target_fnum, :)); title('Fiber force');
-
-figure(); plot(time, tendonForce(target_fnum, :)); title('Tendon force');
+% target_fnum = 1;
+ 
+% figure(); plot(time, lceAT(target_fnum, :) ./ cos(alpha(target_fnum, :))); title('Fiber length along Tendon');
+% 
+% figure(); plot(time, tendon_length(target_fnum, :)); title('Tendon length');
+% 
+% figure(); plot(time, fiberForce(target_fnum, :)); title('Fiber force');
+% 
+% figure(); plot(time, tendonForce(target_fnum, :)); title('Tendon force');
 
 %% Bode plots with fitted 2nd order system
 
@@ -509,13 +525,8 @@ for fnum = 1 : pnum - 1
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
     hold on;
-    % plot(closest_freq, closest_mag_dB, 'x', 'MarkerSize', 10, ...
-        % 'Color', cm(fnum, :), 'LineWidth', 2);
-    % text(closest_freq, closest_mag_dB, sprintf(' f_n = %.2f Hz', closest_freq), ...
-        % 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
     grid on;
 
-    % Plot phase
     subplot(2, 1, 2);
     semilogx(bode_freq, bode_pha, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
@@ -523,23 +534,4 @@ for fnum = 1 : pnum - 1
     grid on;
 end
 
-% Add legends
-% subplot(2, 1, 1);
-% legend('Location', 'EastOutside', 'Box', 'off');
-% 
-% subplot(2, 1, 2);
-% legend('Location', 'EastOutside', 'Box', 'off');
-
 hold off;
-
-% Display natural frequencies
-disp('Natural frequencies for each patch: ');
-disp(nat_freqs);
-
-% Total Harmonic Distortion (THD) plot
-figure();
-semilogx(frequencies, 20*log10(THD_vals), 'k-o', 'MarkerSize', 4);
-title('Total Harmonic Distortion (THD)');
-xlabel('Frequency (Hz)');
-ylabel('THD (dB)');
-grid on;
