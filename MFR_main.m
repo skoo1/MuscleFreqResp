@@ -679,10 +679,7 @@ function onOpenViewerPressed(h)
 
             lastPath = pathName;
 
-            answer = questdlg( ...
-                'Select more files from another folder?', ...
-                'Add files', ...
-                'Yes','No','No');
+            answer = questdlg( 'Select more files from another folder?', 'Add files', 'Yes','No','No');
 
             if isempty(answer) || strcmp(answer,'No')
                 keepSelecting = false;
@@ -709,5 +706,7 @@ function onOpenViewerPressed(h)
 end
 
 function y = tern(cond,a,b)
-if cond, y = a; else, y = b; end
+    if cond, y = a;    
+    else, y = b; 
+    end
 end
