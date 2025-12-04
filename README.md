@@ -54,10 +54,15 @@ The main MATLAB scripts for frequency response analysis and Bode plot generation
 
 ### Please follow the steps below to run the simulation.
 > **Note:** Make sure that the repository paths are correctly set before running the code.
+>
+> In each model execution file, the variables `saveFolder1` and `saveFolder2` must be set to your data storage directory.
+>
+> For example:
+> 'saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\beforeFFT';'
 
 #### 1. Run `MFR_main.m`
 #### 2. Choose the simulation mode and adjust the simulation configurations
-- Default values correspond to the human soleus muscle (OpenSim Gait2392 model)
+- Default muscle parameter values correspond to the human soleus muscle (based on the OpenSim Gait2392 model)
 
 #### 3. After the simulation finishes, all Bode plot data points are saved in:  
 - `(TMM or MMM)_result/afterFFT`
