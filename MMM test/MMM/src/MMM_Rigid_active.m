@@ -1,11 +1,13 @@
-% By Minseung Kim, 2025-02-04
-% profile on
-clc;
-clear;
+% By Minseung Kim, 2024-12-27
+% 2025-12-04
 
-%%%%%% NOW I'M TESTING A RIGID-TENDON MODEL %%%%%%%
+% clc;
+% clear;
+
+%%%%%% RIGID-TENDON MODEL %%%%%%%
 
 %% Problem Assumptions
+
 % Gathering muscle info 
 
 maximumNormalizedFiberVelocity          = 10;                % in units of norm fiber lengths/second
@@ -130,15 +132,18 @@ muscleArch.pennationAngleAtMinumumFiberLength = ...
 
 %% Generating patch_info.txt
 
-% filename                = 'patch_info.txt';
-filename                = 'single_patch.txt';
+filename                = 'patch_info.txt';
 
 fileID                  = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
-% L_mn0_values            = [0.6, 0.8, 1.0, 1.2, 1.4];
-L_mn0_values            = [1.0];
-V_m0_values             = [0.0];
+if ~exist('L_mn0_values','var')
+    L_mn0_values = [1.0];
+end
+
+if ~exist('V_m0_values','var')
+    V_m0_values = [0.0];
+end
 
 for file_i = 1 : length(L_mn0_values)
     for file_j = 1 : length(V_m0_values)
@@ -148,24 +153,25 @@ end
 
 fclose(fileID);
 
-if ~exist('patch_result', 'dir')
-    mkdir('patch_result');
+thisDir  = fileparts(mfilename('fullpath'));
+patchDir = fullfile(thisDir, 'patch_result');
+
+if ~exist(patchDir, 'dir')
+    mkdir(patchDir);
 end
 
-if exist('patch_result', 'dir')
-    delete('patch_result/*.mat'); 
-end
+delete(fullfile(patchDir, '*.mat'));
 
 %% Main Calculation
 
-patch_info              = readtable('single_patch.txt');
+patch_info              = readtable('patch_info.txt');
 
 index_L                 = 1;
 index_V                 = 1;
 pnum                    = 1;
 
-L_range                 = 0.100;                                                                     % Muscle length +- range
-V_range                 = 0.100;                                                                     % Velocity +- range
+L_range                 = 0.050;                                                                     % Muscle length +- range
+V_range                 = 0.050;                                                                     % Velocity +- range
 
 aim_Lnum                = length(L_mn0_values);
 aim_Vnum                = length(V_m0_values);
@@ -184,7 +190,10 @@ visual_result           = cell(aim_pnum, 1);
 
 while (index_L <= aim_Lnum)
 
-    const_b             = 0.01;
+    if ~exist('const_b','var')
+        const_b = 0.01;                                                                % Fluctuation level of the excitation signals
+    end
+    
     cutpoint            = 1;                                                              % cutpoint = 1 means no data cutting
         
     mod_V_m0            = V_m0_values(index_V);
@@ -197,37 +206,59 @@ while (index_L <= aim_Lnum)
     lt0                 = mod_L_mt0 - lceAT0 * cos(alphaOpt);
     dlceAT0             = 0.0;
 
-    V_mt0               = 0;                                                              % muscle-tendon velocity
+    V_mt0               = 0;                                                           % muscle-tendon velocity
 
-    u0                  = 0.5;
+    if ~exist('u0','var')
+        u0 = 0.5;                                                                      % Initial excitation value (0-1)
+    end
     
-    desiredLf           = mod_L_mt0 - ltSlk;
+    desiredLf           = lceAT0;
     F_ext_equil         = findExternalForceForFiberLength(desiredLf, u0, muscleArch, ...
         normMuscleCurves, modelConfig, alphaOpt, ltSlk);
     
     tendonForce_initial = F_ext_equil;
     
-    fiberForce_initial  = tendonForce_initial;
+    fiberForce_initial  = tendonForce_initial / cos(alphaOpt);
     
     pre_L_mt0           = mod_L_mt0; 
     pre_dlceAT0         = 0.0;
-    pre_lceAT0          = mod_L_mt0 - ltSlk;
+    % pre_lceAT0          = mod_L_mt0 - ltSlk;
+    pre_lceAT0          = desiredLf;
 
-    mass                = 30; 
-    % mass                = 3000000;
+    if ~exist('mass','var')
+        mass = 3000000.0;                                                                 % Mass of the muscle                (kg)
+    end
 
-    % [ calculations ]
-    % Configuration for Proposal: totalTime = 120; frequencies = logspace(-1, 2, 400)
+    if ~exist('damp','var')
+        ext_damping = 0.0;
+    end
 
-    totalTime           = 120;                                                                                                                                                                                                                                                                                   ;
-    dt                  = 0.001;
+    if ~exist('totalTime','var')
+        totalTime = 120;
+    end                                                                                                                                                                                                                                                                                         ;
+    
+    if ~exist('dt','var')
+        dt = 0.001;
+    end
+
     time                = 0 : dt : (totalTime - dt);
 
-    frequencies         = logspace(-1, 2, 400);                                              
+    if ~exist('steps','var')
+        steps = 400;
+    end
+
+    if ~exist('freqlb','var')
+        freqlb = 0.1;                                                                  % Lower bound of the excitation frequency
+    end
+
+    if ~exist('freqhb','var')
+        freqhb = 100;                                                                  % Upper bound of the excitation frequency
+    end
+
+    frequencies         = logspace(log10(freqlb), log10(freqhb), steps);                                              
     
     freq_len            = length(frequencies);          
     time_len            = length(time);
-    ext_damping         = 100.0;
     
     % [ initialization ]
 
@@ -336,7 +367,7 @@ while (index_L <= aim_Lnum)
             temp_index = temp_index + 1;
         end          
 
-        patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
+        patch_filename = fullfile(patchDir, sprintf('p%d_k%d.mat', pnum, k));
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
@@ -344,7 +375,6 @@ while (index_L <= aim_Lnum)
    
         sig_out(k, :)   = temp_result(cutpoint:end-1, 5);
         
-
         A_fft           = fft(sig_in(k, cutpoint:end-1)); 
         F_fft           = fft(sig_out(k, cutpoint:end-1)); 
         
@@ -365,22 +395,6 @@ while (index_L <= aim_Lnum)
  
         fprintf("\n-----------------------------\n\n");
 
-        % THD Calculation
-        N_fft       = n_f;                                                % 실제 FFT 길이
-        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;              % 출력신호 절반 구간 파워 스펙트럼
-
-        basic_idx   = idx(k);                                             % 기본파 인덱스
-        basic_power = P_out(basic_idx);                                   % 기본파 파워
-
-        har_idx     = 2 * basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             % 범위 초과 방지
-
-        if basic_power ~= 0
-            har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);         % THD = sqrt(고조파 파워합) / sqrt(기본파 파워)
-        else
-            THD_vals(k)  = NaN;                                         % 기본파가 너무 작으면 계산 불가
-        end
     end
 
     pha = unwrap(pha) * (180 / pi);
@@ -409,19 +423,28 @@ end
 
 % Format:: MMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-saveFolder1 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\beforeFFT';
+saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\beforeFFT';
 
 if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
 end
 
+if exist('mass','var')
+    if abs(mass - 3e6) < 1e-6     % 3000000 kg → isometric
+        mass_label = 'isometric';
+    else
+        mass_label = [num2str(mass) 'kg'];
+    end
+else
+    mass_label = 'unknownMass';
+end
+
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wd100_bF_n_Rigid.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_' mass_label '_Rigid.mat'];
     
     fullPath = fullfile(saveFolder1, fileName);
 
-    % savingdata_time = patch_result{file_idx};
     savingdata_time = cell(1, freq_len);
 
     for k = 1 : freq_len
@@ -433,7 +456,7 @@ for file_idx = 1 : length(L_mn0_values)
     save(fullPath, 'savingdata_time', '-v7.3');
 end
 
-saveFolder2 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\afterFFT';
+saveFolder2 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\afterFFT';
 
 if ~exist(saveFolder2, 'dir')
     mkdir(saveFolder2);
@@ -441,7 +464,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wd100_aF_n_Rigid.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_' mass_label '_Rigid.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -453,22 +476,22 @@ end
 
 %% Debugging plot
 
-number = 1;
-
-figure(); plot(time, lceAT(number, :) ./ cos(alpha(number, :))); title('Fiber length');
-hold on; 
-plot(time, lceAT(number, :)); legend('Normal', 'Pennated');
-hold off;
-
-figure(); plot(time, tendon_length(number, :)); title('Tendon length');
-
-figure(); plot(time, fiberForce(number, :)); title('Fiber force');
-
-figure(); plot(time, tendonForce(number, :)); title('Tendon force');
-
-figure(); plot(time, abs(fiberForce(number, :) - tendonForce(number, :))); title('Force differences');
-
-figure(); plot(time, L_mt(number, :)); title('Musculo-tendon length');
+% number = 1;
+% 
+% figure(); plot(time, lceAT(number, :) ./ cos(alpha(number, :))); title('Fiber length');
+% hold on; 
+% plot(time, lceAT(number, :)); legend('Normal', 'Pennated');
+% hold off;
+% 
+% figure(); plot(time, tendon_length(number, :)); title('Tendon length');
+% 
+% figure(); plot(time, fiberForce(number, :)); title('Fiber force');
+% 
+% figure(); plot(time, tendonForce(number, :)); title('Tendon force');
+% 
+% figure(); plot(time, abs(fiberForce(number, :) - tendonForce(number, :))); title('Force differences');
+% 
+% figure(); plot(time, L_mt(number, :)); title('Musculo-tendon length');
 
 %% Bode plots with fitted 2nd order system
 
@@ -490,26 +513,12 @@ for fnum = 1 : pnum - 1
     mag_dB = 20 * log10(bode_mag);
     omega = 2 * pi * bode_freq; % Frequency (rad/s)
 
-    % Generate complex response for FRD
-    % bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
-    % data = frd(bode_response, omega);
-    % 
-    % sys = tfest(data, 2);
-    % [wn, zeta] = damp(sys);
-    % nat_freq_Hz = wn(1) / (2 * pi);
-
     subplot(2, 1, 1);
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
     hold on;
-    ylim([0 60]);
-    % plot(closest_freq, closest_mag_dB, 'x', 'MarkerSize', 10, ...
-        % 'Color', cm(fnum, :), 'LineWidth', 2);
-    % text(closest_freq, closest_mag_dB, sprintf(' f_n = %.2f Hz', closest_freq), ...
-        % 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
     grid on;
 
-    % Plot phase
     subplot(2, 1, 2);
     semilogx(bode_freq, bode_pha, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
@@ -517,36 +526,7 @@ for fnum = 1 : pnum - 1
     grid on;
 end
 
-% Add legends
-% subplot(2, 1, 1);
-% legend('Location', 'EastOutside', 'Box', 'off');
-% 
-% subplot(2, 1, 2);
-% legend('Location', 'EastOutside', 'Box', 'off');
-
 hold off;
-
-% Display natural frequencies
-disp('Natural frequencies for each patch: ');
-disp(nat_freqs);
-
-% Total Harmonic Distortion (THD) plot
-figure();
-semilogx(frequencies, 20*log10(THD_vals), 'k-o', 'MarkerSize', 4);
-title('Total Harmonic Distortion (THD)');
-xlabel('Frequency (Hz)');
-ylabel('THD (dB)'); ylim([-60 0]);
-grid on;
-
-fs = 8000;
-freqs = [440, 880, 660]; 
-duration = 0.2;
-for freq = freqs
-    t = 0:1/fs:duration;
-    y = sin(2 * pi * freq * t);
-    sound(y, fs);
-    pause(duration); 
-end
 
 %% Functions
 
