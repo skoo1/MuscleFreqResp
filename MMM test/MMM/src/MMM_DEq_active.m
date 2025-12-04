@@ -460,7 +460,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_' mass_label '_DEq.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_aF_n_' mass_label '_DEq.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -673,3 +673,4 @@ function F_ext_equil = findExternalForceForFiberLength( ...
     
     F_ext_equil       = currentFiberForce;
 end
+
