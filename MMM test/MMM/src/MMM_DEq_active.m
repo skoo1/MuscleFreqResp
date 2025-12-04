@@ -1,16 +1,15 @@
-% By Minseung Kim, 2025-02-05
-% profile on
-clc;
-clear;
+% 2025-12-04
 
-%%%%%% NOW I'M TESTING A Damped equilibrium MODEL %%%%%%%
+% clc;
+% clear;
+
+%%%%%% Damped equilibrium MODEL %%%%%%%
 
 %% Problem Assumptions
 
 % Gathering muscle info 
 
 maximumNormalizedFiberVelocity          = 10;                % in units of norm fiber lengths/second
-% maximumNormalizedFiberVelocity          = 8;                   % OB data
 maximumPennationAngle                   = 89 * (pi/180); 
     
 flag_useArnold2010SoleusArchitecture    = 1;
@@ -57,7 +56,7 @@ if(flag_useArnold2010SoleusArchitecture == 1)
     ltSlk       = arnold2010LegArch.tendonSlackLength(idx_);
 
 else 
-    muscleName  = 'MMM';
+    muscleName  = 'MMM_DEq';
     fiso        = 1;
     lceOpt      = 0.02;
     alphaOpt    = 30*(pi/180);
@@ -65,11 +64,11 @@ else
 end
 
 if(flag_useThelen2003SoleusArchitecture == 1)
-    % muscleName      = 'Soleus';
-    % fiso            = 3549.0;       % (N)
-    % lceOpt          = 0.05;         % (m)
-    % alphaOpt        = 0.4363;       % (rad)
-    % ltSlk           = 0.25;         % (m)
+    muscleName      = 'Soleus';
+    fiso            = 3549.0;       % (N)
+    lceOpt          = 0.05;         % (m)
+    alphaOpt        = 0.4363;       % (rad)
+    ltSlk           = 0.25;         % (m)
     % ltSlk           = 0.20;         % (m)
     
     % muscleName      = 'Soleus_OB';
@@ -78,11 +77,11 @@ if(flag_useThelen2003SoleusArchitecture == 1)
     % alphaOpt        = 0.3050;       % (rad)
     % ltSlk           = 0.25;         % (m)
 
-    muscleName      = 'Gastroc';
-    fiso            = 1558.0;       % (N)
-    lceOpt          = 0.06;         % (m)
-    alphaOpt        = 0.2967;       % (rad)
-    ltSlk           = 0.39;         % (m)
+    % muscleName      = 'Gastroc';
+    % fiso            = 1558.0;       % (N)
+    % lceOpt          = 0.06;         % (m)
+    % alphaOpt        = 0.2967;       % (rad)
+    % ltSlk           = 0.39;         % (m)
 
     % muscleName      = 'TA';
     % fiso            = 905.0;        % (N)
@@ -125,15 +124,18 @@ muscleArch.pennationAngleAtMinumumFiberLength = ...
 
 %% Generating patch_info.txt
 
-% filename                = 'patch_info.txt';
-filename                = 'single_patch.txt';
+filename                = 'patch_info.txt';
 
 fileID                  = fopen(filename, 'w');
 fprintf(fileID, 'L_mn0 V_m0\n');
 
-% L_mn0_values            = [0.6, 0.8, 1.0, 1.2, 1.4];
-L_mn0_values            = [1.0];
-V_m0_values             = [0.0];
+if ~exist('L_mn0_values','var')
+    L_mn0_values = [1.0];
+end
+
+if ~exist('V_m0_values','var')
+    V_m0_values = [0.0];
+end
 
 for file_i = 1 : length(L_mn0_values)
     for file_j = 1 : length(V_m0_values)
@@ -143,17 +145,18 @@ end
 
 fclose(fileID);
 
-if ~exist('patch_result', 'dir')
-    mkdir('patch_result');
+thisDir  = fileparts(mfilename('fullpath'));
+patchDir = fullfile(thisDir, 'patch_result');
+
+if ~exist(patchDir, 'dir')
+    mkdir(patchDir);
 end
 
-if exist('patch_result', 'dir')
-    delete('patch_result/*.mat');
-end
+delete(fullfile(patchDir, '*.mat'));
 
 %% Main Calculation
 
-patch_info              = readtable('single_patch.txt');
+patch_info              = readtable('patch_info.txt');
 
 index_L                 = 1;
 index_V                 = 1;
@@ -179,8 +182,11 @@ visual_result           = cell(aim_pnum, 1);
 
 while (index_L <= aim_Lnum)
 
-    const_b             = 0.01;
-    cutpoint            = 1;                                                              % cutpoint = 1 means no data cutting
+    if ~exist('const_b','var')
+        const_b = 0.01;                                                                % Fluctuation level of the excitation signals
+    end
+
+    cutpoint            = 1;                                                           % cutpoint = 1 means no data cutting
         
     mod_V_m0            = V_m0_values(index_V);
     mod_L_mn0           = L_mn0_values(index_L);
@@ -194,7 +200,9 @@ while (index_L <= aim_Lnum)
 
     V_mt0               = 0;                                                              % muscle-tendon velocity
 
-    u0                  = 0.5;
+    if ~exist('u0','var')
+        u0 = 0.5;                                                                      % Initial excitation value (0-1)
+    end
     
     desiredLf           = lceAT0;
     F_ext_equil         = findExternalForceForFiberLength(desiredLf, u0, muscleArch, ...
@@ -206,23 +214,43 @@ while (index_L <= aim_Lnum)
     
     pre_L_mt0           = mod_L_mt0; 
     pre_dlceAT0         = 0.0;
-    pre_lceAT0          = mod_L_mt0 - ltSlk;
+    % pre_lceAT0          = desiredLf - ltSlk;
+    pre_lceAT0          = desiredLf;
 
-    % mass                = 300;       
-    mass                = 3000000;
+    if ~exist('mass','var')
+        mass = 3000000.0;                                                                 % Mass of the muscle                (kg)
+    end
 
-    % [ calculations ]
-    % Configuration for Proposal: totalTime = 120; frequencies = logspace(-1, 2, 400)
+    if ~exist('damp','var')
+        ext_damping = 0.0;
+    end
 
-    totalTime           = 120;                                                                                                                                                                                                                                                                                   ;
-    dt                  = 0.001;
+    if ~exist('totalTime','var')
+        totalTime = 120;
+    end
+
+    if ~exist('dt','var')
+        dt = 0.001;
+    end
+
     time                = 0 : dt : (totalTime - dt);
 
-    frequencies         = logspace(-1, 2, 400);                                              
+    if ~exist('steps','var')
+        steps = 400;
+    end
+
+    if ~exist('freqlb','var')
+        freqlb = 0.1;                                                                  % Lower bound of the excitation frequency
+    end
+
+    if ~exist('freqhb','var')
+        freqhb = 100;                                                                  % Upper bound of the excitation frequency
+    end
+
+    frequencies         = logspace(log10(freqlb), log10(freqhb), steps);
     
     freq_len            = length(frequencies);          
     time_len            = length(time);
-    ext_damping         = 0.0;
     
     % [ initialization ]
 
@@ -254,14 +282,19 @@ while (index_L <= aim_Lnum)
     sin_f               = zeros(1, length(frequencies));
     mag                 = zeros(1, length(frequencies));
     exc                 = zeros(1, length(frequencies));
-
-    THD_vals            = zeros(1, freq_len, 'single');
     
     fprintf("-----------------------------\n\n");
     fprintf("[ Main Calculation started ] \n\n");
     fprintf("-----------------------------\n\n");
     
     for k = 1 : length(frequencies)
+        
+        % Check 'STOP' sign from GUI (MFR_main.m)
+        if evalin('base','exist(''MFR_STOP'',''var'') && MFR_STOP')
+            builtin('error','Simulation stopped by user via GUI.');
+        end
+        drawnow limitrate;
+        
         tic;
 
         fprintf("<strong>[ Patch number: %d ]\n\n</strong>", pnum);
@@ -269,9 +302,7 @@ while (index_L <= aim_Lnum)
         fprintf("<strong>Step number: %d</strong> \n\n", k);
     
         freq = frequencies(k);
-        
-        % u_Vec    = calcSinusoidState(time, u0, const_b, freq);
-        % u        = u_Vec(2);
+
         u    = sinwave(freq, time, u0, u0, const_b);
         
         for u_temp = 1 : length(u)
@@ -300,7 +331,6 @@ while (index_L <= aim_Lnum)
         for i = 1 : time_len - 1                                                            % Explicit method
 
             pathState        = [V_mt(k, i); L_mt(k, i)];
-            % muscleState      = [dlceAT(k, i); lceAT(k, i)];
             muscleState      = lceAT(k, i);
 
             mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
@@ -333,7 +363,7 @@ while (index_L <= aim_Lnum)
             temp_index = temp_index + 1;
         end          
 
-        patch_filename = sprintf('patch_result/p%d_k%d.mat', pnum, k);
+        patch_filename = fullfile(patchDir, sprintf('p%d_k%d.mat', pnum, k));
         save(patch_filename, 'temp_result', '-v7.3');
 
         loaded = load(patch_filename, 'temp_result');
@@ -361,22 +391,6 @@ while (index_L <= aim_Lnum)
  
         fprintf("\n-----------------------------\n\n");
 
-        % THD Calculation
-        N_fft       = n_f;                                                
-        P_out       = abs(F_fft(1 : floor(N_fft/2) + 1)).^2;            
-
-        basic_idx   = idx(k);                                            
-        basic_power = P_out(basic_idx);                                   
-
-        har_idx     = 2 * basic_idx : basic_idx : floor(N_fft/2) + 1; 
-        har_idx     = har_idx(har_idx <= floor(N_fft/2) + 1);             
-
-        if basic_power ~= 0
-            har_power    = sum(P_out(har_idx));
-            THD_vals(k)  = sqrt(har_power) / sqrt(basic_power);        
-        else
-            THD_vals(k)  = NaN;                                         
-        end
     end
 
     pha = unwrap(pha) * (180 / pi);
@@ -405,19 +419,28 @@ end
 
 % Format:: MMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-saveFolder1 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\beforeFFT';
+saveFolder1 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\beforeFFT';
 
 if ~exist(saveFolder1, 'dir')
     mkdir(saveFolder1);
 end
 
+if exist('mass','var')
+    if abs(mass - 3e6) < 1e-6     % 3000000 kg → isometric
+        mass_label = 'isometric';
+    else
+        mass_label = [num2str(mass) 'kg'];
+    end
+else
+    mass_label = 'unknownMass';
+end
+
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_gas_YB_wod_bF_sta_DEq.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_' mass_label '_DEq.mat'];
     
     fullPath = fullfile(saveFolder1, fileName);
 
-    % savingdata_time = patch_result{file_idx};
     savingdata_time = cell(1, freq_len);
     
     for k = 1 : freq_len
@@ -429,7 +452,7 @@ for file_idx = 1 : length(L_mn0_values)
     save(fullPath, 'savingdata_time', '-v7.3');
 end
 
-saveFolder2 = 'G:\Research\MMM test\MMM\src\MMM_result_KMS\afterFFT';
+saveFolder2 = 'C:\Users\user\Desktop\MuscleFreqResp-main\MMM test\MMM\src\MMM_result\afterFFT';
 
 if ~exist(saveFolder2, 'dir')
     mkdir(saveFolder2);
@@ -437,7 +460,7 @@ end
 
 for file_idx = 1 : length(L_mn0_values)
     
-    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_gas_YB_wod_aF_sta_DEq.mat'];
+    fileName = [num2str(L_mn0_values(file_idx)) '_' num2str(u0) '_sol_YB_wod_bF_n_' mass_label '_DEq.mat'];
     
     fullPath = fullfile(saveFolder2, fileName);
 
@@ -448,13 +471,13 @@ end
 
 %% Debugging plot
 
-figure(); plot(time, lceAT(1, :) ./ cos(alpha(1, :))); title('Fiber length along Tendon');
-
-figure(); plot(time, tendon_length(1, :)); title('Tendon length');
-
-figure(); plot(time, fiberForce(1, :)); title('Fiber force');
-
-figure(); plot(time, tendonForce(1, :)); title('Tendon force');
+% figure(); plot(time, lceAT(1, :) ./ cos(alpha(1, :))); title('Fiber length along Tendon');
+% 
+% figure(); plot(time, tendon_length(1, :)); title('Tendon length');
+% 
+% figure(); plot(time, fiberForce(1, :)); title('Fiber force');
+% 
+% figure(); plot(time, tendonForce(1, :)); title('Tendon force');
 
 %% Bode plots with fitted 2nd order system
 
@@ -476,26 +499,12 @@ for fnum = 1 : pnum - 1
     mag_dB = 20 * log10(bode_mag);
     omega = 2 * pi * bode_freq; % Frequency (rad/s)
 
-    % Generate complex response for FRD
-    bode_response = bode_mag .* (cosd(bode_pha) + 1j * sind(bode_pha));
-    data = frd(bode_response, omega);
-
-    sys = tfest(data, 2);
-    [wn, zeta] = damp(sys);
-    nat_freq_Hz = wn(1) / (2 * pi);
-
     subplot(2, 1, 1);
     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
     hold on;
-    ylim([0 60]);
-    % plot(closest_freq, closest_mag_dB, 'x', 'MarkerSize', 10, ...
-        % 'Color', cm(fnum, :), 'LineWidth', 2);
-    % text(closest_freq, closest_mag_dB, sprintf(' f_n = %.2f Hz', closest_freq), ...
-        % 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
     grid on;
 
-    % Plot phase
     subplot(2, 1, 2);
     semilogx(bode_freq, bode_pha, 'o', 'MarkerSize', 1, ...
         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
@@ -503,26 +512,7 @@ for fnum = 1 : pnum - 1
     grid on;
 end
 
-% Add legends
-% subplot(2, 1, 1);
-% legend('Location', 'EastOutside', 'Box', 'off');
-% 
-% subplot(2, 1, 2);
-% legend('Location', 'EastOutside', 'Box', 'off');
-
 hold off;
-
-% Display natural frequencies
-disp('Natural frequencies for each patch: ');
-disp(nat_freqs);
-
-% Total Harmonic Distortion (THD) plot
-figure();
-semilogx(frequencies, 20*log10(THD_vals), 'k-o', 'MarkerSize', 4);
-title('Total Harmonic Distortion (THD)');
-xlabel('Frequency (Hz)');
-ylabel('THD (dB)'); ylim([-60 0]);
-grid on;
 
 %% Patching (Multi)
 % TO VISUALIZE ALL THE PATCHES
@@ -634,18 +624,6 @@ grid on;
 % grid on;
 % 
 % hold off;
-
-fs = 8000;
-freqs = [440, 880, 660]; 
-duration = 0.2;
-for freq = freqs
-    t = 0:1/fs:duration;
-    y = sin(2 * pi * freq * t);
-    sound(y, fs);
-    pause(duration); 
-end
-
-% profile viewer
 
 %% Functions
 
