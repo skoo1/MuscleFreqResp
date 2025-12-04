@@ -273,7 +273,7 @@ S.btnViewer = uicontrol(S.fig, ...
 
 S.textFooter = uicontrol(S.fig, ...
     'Style', 'text', ...
-    'String', 'Last updated: 2025-11-27', ... 
+    'String', 'Last updated: 2025-12-04', ... 
     'FontSize', 8, ...
     'HorizontalAlignment', 'right', ...
     'Position', [20 40 860 12]);
@@ -453,8 +453,8 @@ function configurePhase2Defaults(S)
     end
     
     if strcmp(S.mode,'passive')
-        massStr = '30';       
-        dampStr = '1000';      
+        massStr = '0';       
+        dampStr = '0';      
     else
         massStr = '3e6';      
         dampStr = '0.0';
@@ -653,34 +653,56 @@ function onOpenViewerPressed(h)
     S   = guidata(fig);
 
     try
-        [files, pathName] = uigetfile('*.mat', ...
-            'Select Bode data files (afterFFT .mat)', ...
-            fullfile(S.repoRoot, ''), ...
-            'MultiSelect','on');
-    
-        if isequal(files,0)
-            disp('[INFO] Bode viewer: selection cancelled by user.');
+        fullpaths = {};
+
+        keepSelecting = true;
+        lastPath = S.repoRoot;
+
+        while keepSelecting
+            [files, pathName] = uigetfile( ...
+                '*.mat', ...
+                'Select Bode data files (afterFFT .mat)', ...
+                lastPath, ...
+                'MultiSelect','on');
+
+            if isequal(files,0)
+                break;
+            end
+
+            if ischar(files)
+                files = {files};
+            end
+
+            for i = 1:numel(files)
+                fullpaths{end+1,1} = fullfile(pathName, files{i});
+            end
+
+            lastPath = pathName;
+
+            answer = questdlg( ...
+                'Select more files from another folder?', ...
+                'Add files', ...
+                'Yes','No','No');
+
+            if isempty(answer) || strcmp(answer,'No')
+                keepSelecting = false;
+            end
+        end
+
+        if isempty(fullpaths)
+            disp('[INFO] Bode viewer: no files selected.');
             return;
         end
-    
-        if ischar(files)
-            files = {files};
-        end
-    
-        fullpaths = cell(numel(files),1);
-        for i = 1:numel(files)
-            fullpaths{i} = fullfile(pathName, files{i});
-        end
-    
+
         assignin('base','GUI_Bode_files', fullpaths);
-    
+
         viewerPath = fullfile(S.repoRoot, 'MFR_Bode_viewer.m');
         if exist(viewerPath,'file') ~= 2
             error('MFR_Bode_viewer.m not found at %s', viewerPath);
         end
-    
+
         run(viewerPath);
-        
+
     catch ME
         warning(sprintf('Failed to open Bode viewer: %s', ME.message));
     end
