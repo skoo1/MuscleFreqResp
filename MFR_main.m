@@ -464,7 +464,7 @@ function configurePhase2Defaults(S)
     
     % --- totalTime / freq range: active vs passive ---
     if strcmp(S.mode,'passive')
-        totalTStr = '50';
+        totalTStr = '100';
         freqStr   = '0.1, 100, 300';
     else
         totalTStr = '300';
@@ -719,3 +719,4 @@ function y = tern(cond,a,b)
     else, y = b; 
     end
 end
+
