@@ -1,7 +1,7 @@
 % % MFR_main.m 
 % %
 % % Edited by Minseung Kim, 2025-08-13 % %
-% % Edited by Minseung Kim, 2025-11-26 % %
+% % Edited by Minseung Kim, 2025-12-11 % %
 
 function MFR_main()
 
@@ -444,6 +444,7 @@ function configurePhase2Defaults(S)
     LmnStr = '1.0';
     VmStr  = '0.0';
     
+    % --- u0 / const_b ---
     if strcmp(S.mode,'passive')
         u0Str = '0.0';
         bStr  = '0.0';
@@ -452,6 +453,7 @@ function configurePhase2Defaults(S)
         bStr  = '0.01';
     end
     
+    % --- mass / damping ---
     if strcmp(S.mode,'passive')
         massStr = '0';       
         dampStr = '0';      
@@ -460,10 +462,17 @@ function configurePhase2Defaults(S)
         dampStr = '0.0';
     end
     
-    totalTStr   = '120';
-    dtStr       = '0.001';
-    freqStr     = '0.1, 100, 400';
+    % --- totalTime / freq range: active vs passive ---
+    if strcmp(S.mode,'passive')
+        totalTStr = '50';
+        freqStr   = '0.1, 100, 300';
+    else
+        totalTStr = '300';
+        freqStr   = '0.1, 100, 1000';
+    end
     
+    dtStr = '0.001';
+
     set(S.editLmn0,     'String', LmnStr);
     set(S.editVm0,      'String', VmStr);
     set(S.editU0,       'String', u0Str);
@@ -552,7 +561,7 @@ function onRunPressed(h)
     freqTokens = sscanf(freqStrClean, '%f');
     
     if numel(freqTokens) ~= 3 || any(isnan(freqTokens))
-        error('Invalid frequency range. Use "min, max, steps" (e.g., "0.1, 100, 400").');
+        error('Invalid frequency range. Use "min, max, steps" (e.g., "0.1, 100, 1000").');
     end
 
     freqlbVal = freqTokens(1);
