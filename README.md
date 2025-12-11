@@ -48,7 +48,8 @@ The main MATLAB scripts for frequency response analysis and Bode plot generation
 
 ## **1. File structure**
 
-<img width="1198" height="670" alt="image" src="https://github.com/user-attachments/assets/00258f01-c6f7-4d42-9305-14c34de1b87e" />
+<img width="1116" height="575" alt="image" src="https://github.com/user-attachments/assets/cf4929f5-9179-462b-a1a8-6566013458b5" />
+
 
 ## **2. How to run**
 
@@ -74,7 +75,7 @@ The main MATLAB scripts for frequency response analysis and Bode plot generation
 ### GUI Sample
 
 <p align="center">
-  <img width="1179" height="659" alt="image" src="https://github.com/user-attachments/assets/5c86b909-8922-4c6c-b9df-968a0e4c777b" />
+  <img src="https://github.com/user-attachments/assets/54e6c0e2-122b-405d-8b79-0c89e7f92fd5" width="700">
 </p>
 
 ---
