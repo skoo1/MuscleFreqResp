@@ -246,7 +246,7 @@ while (index_L <= aim_Lnum)
     end
 
     if ~exist('totalTime','var')
-        totalTime = 50;
+        totalTime = 100;
     end
     
     if ~exist('dt','var')
