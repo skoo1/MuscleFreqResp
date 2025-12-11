@@ -1,12 +1,11 @@
 %% Descriptions
 % By Minseung Kim, 2024-11-01
-% Another revision at 2025-11-27
+% Another revision at 2025-12-11
 
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-clc; 
-
+% clc; 
 % clear;
 
 if evalin('base','exist(''GUI_Bode_files'',''var'')')
@@ -45,6 +44,8 @@ phase_data      = cell(n, 1);
 parts           = split(fileNames{1}, '_');
 u0_str          = parts{2};
 u0              = str2double(u0_str);
+
+isPassiveMode   = (abs(u0) < 1e-8);
 
 L_mn0_values    = zeros(1, n);
 nat_freqs       = zeros(1, n);
@@ -99,8 +100,7 @@ for i = 1 : n
     variable_name       = extractBefore(last_part, '.mat');
     variable_names{i}   = variable_name;
 
-    fullpath = fullpaths{i};
-    [filepath, name, ext] = fileparts(fullpath);
+    [filepath, name, ext] = fileparts(filePath);
 
     thisModel = 'Unknown';
 
@@ -241,48 +241,48 @@ end
 %% For generating Single Figure
 figure();
 
-% sg_title_text = sprintf('TMM Results of %s muscle, initial excitation = %.2f', ...
-%                         muscle_names{1}, u0);
-% sg = sgtitle(sg_title_text, 'FontSize', 23, 'FontName', 'Times New Roman');
-
 cm = hsv(n);
 
-nat_freqs = zeros(n, 1);
-lower_cutoff_freq = zeros(n, 1);
+nat_freqs           = zeros(n, 1);
+lower_cutoff_freq   = zeros(n, 1);
 
 hold on;
 for i = 1 : n
-    idx = i;
+    idx         = i;
     freq_values = sin_f_data{idx};
     mag_values  = mag_data{idx};
 
-    mag_dB = 20 * log10(mag_values);
+    mag_dB      = 20 * log10(mag_values);
 
     peak_search_range = (freq_values >= 1.0);
+
     if nnz(peak_search_range) >= 2
-        [~, relative_peak_idx] = max(mag_dB(peak_search_range));
-        peak_candidates = find(peak_search_range);
-        max_idx = peak_candidates(relative_peak_idx);
+        [~, relative_peak_idx]  = max(mag_dB(peak_search_range));
+        peak_candidates         = find(peak_search_range);
+        max_idx                 = peak_candidates(relative_peak_idx);
     else
         [~, max_idx] = max(mag_dB);
     end
-    nat_freq_Hz   = freq_values(max_idx);
-    nat_freqs(idx) = nat_freq_Hz;
 
-    plateau_range = (freq_values >= 0.1) & (freq_values <= 1.3);
+    nat_freq_Hz     = freq_values(max_idx);
+    nat_freqs(idx)  = nat_freq_Hz;
+
+    plateau_range   = (freq_values >= 0.1) & (freq_values <= 1.3);
+
     if nnz(plateau_range) >= 5
-        ref_mag_dB = mean(mag_dB(plateau_range));  
+        ref_mag_dB  = mean(mag_dB(plateau_range));  
     else
-        ref_mag_dB = mag_dB(1);                    
+        ref_mag_dB  = mag_dB(1);                    
     end
-    cutoff_mag = ref_mag_dB - 3;              
+
+    cutoff_mag      = ref_mag_dB - 3;              
 
     search_idx = max_idx:length(mag_dB);         
-    lower_cutoff_idx_local = find(mag_dB(search_idx) <= cutoff_mag, 1, 'first');
+    lower_cutoff_idx_local      = find(mag_dB(search_idx) <= cutoff_mag, 1, 'first');
 
     if ~isempty(lower_cutoff_idx_local)
-        lower_cutoff_idx   = search_idx(lower_cutoff_idx_local);
-        lower_cutoff_freq(idx) = freq_values(lower_cutoff_idx);
+        lower_cutoff_idx        = search_idx(lower_cutoff_idx_local);
+        lower_cutoff_freq(idx)  = freq_values(lower_cutoff_idx);
     else
         lower_cutoff_freq(idx) = NaN;
     end
@@ -291,87 +291,164 @@ end
 
 [~, sorted_idx] = sort(lower_cutoff_freq, 'ascend');
 
-unique_models = unique(model_names);
+unique_models   = unique(model_names);
 
-hold on;
+if isPassiveMode
+    ax_mag      = subplot(2,1,1);
+    ax_phase    = subplot(2,1,2);
+else
+    ax_mag      = gca;
+end
+
+hold(ax_mag, 'on');
+if isPassiveMode
+    hold(ax_phase, 'on');
+end
+
 for i = 1 : n
-    idx = sorted_idx(i);
+    idx         = sorted_idx(i);
     freq_values = sin_f_data{idx};
     mag_values  = mag_data{idx};
-    mag_dB = 20 * log10(mag_values);
+    mag_dB      = 20 * log10(mag_values);
 
     str = sprintf('%s, Bandwidth: %.2f Hz', L_mn0_values(idx), lower_cutoff_freq(idx));
 
-    semilogx(freq_values, mag_dB, 'o-', 'MarkerSize', 4, 'LineWidth', 1.5, ...
+    semilogx(ax_mag, freq_values, mag_dB, 'o-', 'MarkerSize', 4, 'LineWidth', 1.5, ...
              'Color', cm(idx, :), ...
              'DisplayName', str);
-    ylim([10 80]);
     
     bw_value = lower_cutoff_freq(idx);
-    end_mag = interp1(freq_values, mag_dB, bw_value);
-    plot(bw_value, end_mag, 'X', 'Color', cm(idx,:), ...
-        'MarkerSize', 20, 'LineWidth', 2, 'HandleVisibility', 'off');
 
-    y_start = 53;      
-    delta_y = 10;      
-    y_band  = y_start - delta_y*(i-1);
-    x1 = 0.1;
-    x2 = bw_value;
-    x_mid = 10^((log10(x1)+log10(x2))/2);
+    if ~isnan(bw_value)
+        end_mag = interp1(freq_values, mag_dB, bw_value);
+        plot(ax_mag, bw_value, end_mag, 'X', 'Color', cm(idx,:), ...
+            'MarkerSize', 20, 'LineWidth', 2, 'HandleVisibility', 'off');
+
+        y_start = 53;      
+        delta_y = 10;      
+        y_band  = y_start - delta_y*(i-1);
+        x1      = 0.1;
+        x2      = bw_value;
+        x_mid   = 10^((log10(x1)+log10(x2))/2);
     
-    plot([x2 x2], [end_mag y_band], '--', ...
-         'Color', cm(idx,:), 'LineWidth', 2, 'HandleVisibility','off');
+        plot(ax_mag, [x2 x2], [end_mag y_band], '--', ...
+             'Color', cm(idx,:), 'LineWidth', 2, 'HandleVisibility','off');
 
-    arrow_abs_length = min(0.05, 0.5 * (log10(x2) - log10(x1)));
-    arrow_abs_height = 3.0;
+        arrow_abs_length = min(0.05, 0.5 * (log10(x2) - log10(x1)));
+        arrow_abs_height = 3.0;
+        x2_tail = 10^(log10(x2) - arrow_abs_length);
     
-    x2_tail = 10^(log10(x2) - arrow_abs_length);
-    
-    plot([x1 x2_tail], [y_band y_band], '-', ...
-         'LineWidth', 8, 'Color', cm(idx,:), 'HandleVisibility','off');
+        plot(ax_mag, [x1 x2_tail], [y_band y_band], '-', ...
+             'LineWidth', 8, 'Color', cm(idx,:), 'HandleVisibility','off');
 
-    x_head = [x2_tail, x2_tail, x2];
-    y_head = [y_band - arrow_abs_height/2, ...
-              y_band + arrow_abs_height/2, y_band];
-    patch(x_head, y_head, cm(idx,:), ...
-          'EdgeColor', 'none', 'HandleVisibility','off');
+        x_head = [x2_tail, x2_tail, x2];
+        y_head = [y_band - arrow_abs_height/2, ...
+                  y_band + arrow_abs_height/2, y_band];
+        patch(x_head, y_head, cm(idx,:), ...
+              'EdgeColor', 'none', 'Parent', ax_mag, ...
+              'HandleVisibility','off');
 
-    thisModel = model_names{idx};
+        thisModel = model_names{idx};
+        if isscalar(unique_models)
+            label_str = sprintf('L_{mn0} = %.2f, Bandwidth: %.2f Hz', ...
+                                L_mn0_values(idx), x2);
+        else
+            label_str = sprintf('%s, Bandwidth: %.2f Hz', thisModel, x2);
+        end
 
-    if isscalar(unique_models)
-        label_str = sprintf('L_{mn0} = %.2f, Bandwidth: %.2f Hz', ...
-                            L_mn0_values(idx), x2);
-    else
-        label_str = sprintf('%s, Bandwidth: %.2f Hz', thisModel, x2);
+        text(ax_mag, x_mid, y_band + 3.5, label_str, ...
+             'FontSize', 27, 'FontWeight', 'bold', ...
+             'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
+             'Color', 'k', 'HandleVisibility','off');
     end
 
-    text(x_mid, y_band + 3.5, label_str, ...
-         'FontSize', 27, 'FontWeight', 'bold', ...
-         'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
-         'Color', 'k', 'HandleVisibility','off');
-
+    if isPassiveMode
+        pha_values = phase_data{idx};
+        semilogx(ax_phase, freq_values, pha_values, 'o-', ...
+                 'MarkerSize', 4, 'LineWidth', 1.5, ...
+                 'Color', cm(idx, :), ...
+                 'DisplayName', sprintf('L_{mn0} = %.2f', L_mn0_values(idx)));
+    end
 end
 hold off;
 
-xl = [0.1 100];
-yl = ylim(gca);
+xlabel(ax_mag, "Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman');
+y1 = ylabel(ax_mag, {'Magnitude (dB)'}, ...
+            'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
+set(ax_mag, 'XScale', 'log');
+set(ax_mag, 'FontSize', 25);
+grid(ax_mag, 'on');
 
-x_pos = 10^(log10(xl(1)) + 0.98 * (log10(xl(2)) - log10(xl(1))));
-y_pos = yl(1) + 0.95 * (yl(2) - yl(1));
+if isPassiveMode
+    ylim(ax_mag, [80 100]);
 
-text(x_pos, y_pos, '$\mathbf{\times}$ marker: $-3\ \mathrm{dB}$ cutoff point', ...
-    'Interpreter', 'latex', ...
-    'HorizontalAlignment', 'right', ...
-    'FontSize', 25, 'Color', 'k', ...
-    'FontName', 'Times New Roman', ...
-    'EdgeColor', 'k', 'BackgroundColor', 'white');
+    xlabel(ax_phase, "Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
+    ylabel(ax_phase, 'Phase (deg)', 'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
+    set(ax_phase, 'XScale', 'log');
+    set(ax_phase, 'FontSize', 25);
+    grid(ax_phase, 'on');
+    ylim(ax_phase, [-50 50]);
+else
+    ylim(ax_mag, [10 80]);
+end
+
+if ~isPassiveMode
+    xl = [0.1 100];
+    yl = ylim(ax_mag);
+    
+    x_pos = 10^(log10(xl(1)) + 0.98 * (log10(xl(2)) - log10(xl(1))));
+    y_pos = yl(1) + 0.95 * (yl(2) - yl(1));
+    
+    text(ax_mag, x_pos, y_pos, ...
+        '$\mathbf{\times}$ marker: $-3\ \mathrm{dB}$ cutoff point', ...
+        'Interpreter', 'latex', ...
+        'HorizontalAlignment', 'right', ...
+        'FontSize', 25, 'Color', 'k', ...
+        'FontName', 'Times New Roman', ...
+        'EdgeColor', 'k', 'BackgroundColor', 'white');
+end
 
 hold off;
 
-xlabel("Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman');
-y1 = ylabel({'Magnitude (dB)'}, ...
-            'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
-grid on;
+uniqueModels    = unique(model_names);
+nModels         = numel(uniqueModels);
+model_handles   = gobjects(nModels, 1);
 
-set(gca, 'XScale', 'log');
-set(gca, 'FontSize', 25);
+hold(ax_mag, 'on');
+for m       = 1 : nModels
+    model   = uniqueModels{m};
+    idx_example = find(strcmp(model_names, model), 1, 'first');  
+
+    if isempty(idx_example)
+        continue;
+    end
+
+    c = cm(idx_example, :);
+
+    model_handles(m) = semilogx(ax_mag, NaN, NaN, 'o', ...
+        'MarkerSize', 20, ...
+        'Color', c, ...
+        'MarkerFaceColor', c, ...
+        'DisplayName', model);
+end
+
+if isPassiveMode
+    legend(ax_mag, model_handles, uniqueModels, ...
+        'Location', 'Eastoutside', ...
+        'Orientation', 'horizontal', ...
+        'Box', 'off', 'Orientation', 'vertical', ...
+        'FontSize', 22);
+    legend(ax_phase, model_handles, uniqueModels, ...
+        'Location', 'Eastoutside', ...
+        'Orientation', 'horizontal', ...
+        'Box', 'off', 'Orientation', 'vertical', ...
+        'FontSize', 22);
+end
+
+% xlabel("Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman');
+% y1 = ylabel({'Magnitude (dB)'}, ...
+%             'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
+% grid on;
+% 
+% set(gca, 'XScale', 'log');
+% set(gca, 'FontSize', 25);
