@@ -1,5 +1,5 @@
 % By Minseung Kim, 2024-12-27
-% 2025-12-04
+% 2025-12-11
 
 % clc;
 % clear;
@@ -177,7 +177,7 @@ modelConfig.useElasticTendon    = 1;
 modelConfig.useFiberDamping     = 0;
 modelConfig.damping             = 0.1;
 modelConfig.minActivation       = 1e-10;
-modelConfig.iterMax             = 100000;
+modelConfig.iterMax             = 10000;
 modelConfig.tol                 = 1e-10;
 modelConfig.passiveOnlyMode     = true;
 
@@ -200,7 +200,7 @@ while (index_L <= aim_Lnum)
 
     err = 1000;
 
-    while abs(real(err)) > 1e-7
+    while abs(real(err)) > 1e-5
         Lf_mid = 1/2 * (Lf_lower + Lf_upper);
 
         pathState   = [0; pre_L_mt0];
@@ -246,7 +246,7 @@ while (index_L <= aim_Lnum)
     end
 
     if ~exist('totalTime','var')
-        totalTime = 120;
+        totalTime = 50;
     end
     
     if ~exist('dt','var')
@@ -256,7 +256,7 @@ while (index_L <= aim_Lnum)
     time                = 0 : dt : (totalTime - dt);
 
     if ~exist('steps','var')
-        steps = 1000;
+        steps = 300;
     end                                          
     
     if ~exist('freqlb','var')
@@ -353,7 +353,7 @@ while (index_L <= aim_Lnum)
             end_    = 1.0; 
             error   = 1000; 
 
-            while (abs(real(error)) > 1e-5)
+            while (abs(real(error)) > 1e-4)
                 
                 L_mm = 1/2 * (start_ + end_);
             
@@ -521,35 +521,35 @@ end
 
 %% Bode plots with fitted 2nd order system
 
-figure();
-sg = sgtitle(sprintf('Bode plot of each conditions w/ u_{0} = %.2f', u0));
-
-cm = hsv(pnum - 1);
-
-cutoff_level = -3;
-
-nat_freqs = zeros(pnum-1, 1);
-
-for fnum = 1 : pnum - 1
-
-    bode_freq = visual_result{fnum}{:, 1}; % Frequency (Hz)
-    bode_mag = visual_result{fnum}{:, 2}; % Magnitude (linear)
-    bode_pha = visual_result{fnum}{:, 3}; % Phase (degrees)
-
-    mag_dB = 20 * log10(bode_mag);
-    omega = 2 * pi * bode_freq; % Frequency (rad/s)
-
-    subplot(2, 1, 1);
-    semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
-        'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
-    hold on;
-    grid on;
-
-    subplot(2, 1, 2);
-    semilogx(bode_freq, bode_pha, 'o', 'MarkerSize', 1, ...
-        'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
-    hold on;
-    grid on;
-end
-
-hold off;
+% figure();
+% sg = sgtitle(sprintf('Bode plot of each conditions w/ u_{0} = %.2f', u0));
+% 
+% cm = hsv(pnum - 1);
+% 
+% cutoff_level = -3;
+% 
+% nat_freqs = zeros(pnum-1, 1);
+% 
+% for fnum = 1 : pnum - 1
+% 
+%     bode_freq = visual_result{fnum}{:, 1}; % Frequency (Hz)
+%     bode_mag = visual_result{fnum}{:, 2}; % Magnitude (linear)
+%     bode_pha = visual_result{fnum}{:, 3}; % Phase (degrees)
+% 
+%     mag_dB = 20 * log10(bode_mag);
+%     omega = 2 * pi * bode_freq; % Frequency (rad/s)
+% 
+%     subplot(2, 1, 1);
+%     semilogx(bode_freq, mag_dB, 'o', 'MarkerSize', 1, ...
+%         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
+%     hold on;
+%     grid on;
+% 
+%     subplot(2, 1, 2);
+%     semilogx(bode_freq, bode_pha, 'o', 'MarkerSize', 1, ...
+%         'Color', cm(fnum, :), 'DisplayName', sprintf('Original: L_{mn} = %.2f, V_{m} = %.2f', L_mn0_values(fnum), V_m0_values(1)));
+%     hold on;
+%     grid on;
+% end
+% 
+% hold off;
