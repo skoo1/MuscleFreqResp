@@ -201,7 +201,7 @@ while (index_L <= aim_Lnum)
 
     err = 1000;
 
-    while abs(real(err)) > 1e-7
+    while abs(real(err)) > 1e-5
         Lf_mid = 1/2 * (Lf_lower + Lf_upper);
 
         pathState   = [0; pre_L_mt0];
@@ -247,7 +247,7 @@ while (index_L <= aim_Lnum)
     end
 
     if ~exist('totalTime','var')
-        totalTime = 120;
+        totalTime = 100;
     end
     
     if ~exist('dt','var')
@@ -257,7 +257,7 @@ while (index_L <= aim_Lnum)
     time                = 0 : dt : (totalTime - dt);
 
     if ~exist('steps','var')
-        steps = 1000;
+        steps = 300;
     end                                          
     
     if ~exist('freqlb','var')
@@ -354,7 +354,7 @@ while (index_L <= aim_Lnum)
             end_    = 1.0; 
             error   = 1000; 
 
-            while (abs(real(error)) > 1e-5)
+            while (abs(real(error)) > 1e-4)
                 
                 L_mm = 1/2 * (start_ + end_);
             
