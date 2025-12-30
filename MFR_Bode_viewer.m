@@ -1,6 +1,6 @@
 %% Descriptions
 % By Minseung Kim, 2024-11-01
-% Another revision at 2025-12-11
+% Another revision at 2025-11-27
 
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
@@ -48,13 +48,16 @@ u0              = str2double(u0_str);
 isPassiveMode   = (abs(u0) < 1e-8);
 
 L_mn0_values    = zeros(1, n);
-nat_freqs       = zeros(1, n);
 variable_names  = cell(n, 1);
 legend_entries  = cell(n, 1);
 muscle_names    = cell(n, 1); 
 age_types       = cell(n, 1);
 last_part       = cell(n, 1);
 damping_types   = cell(n, 1);
+StartHZ         = 10;
+mwinPts         = 8;
+refband         = [9 10];
+
 MMM_variations  = cell(n, 1);
 Model_names     = {'TMM', 'MMM', 'MMM-DEq', 'MMM-Rigid'};
 model_names     = cell(n, 1);
@@ -118,125 +121,6 @@ for i = 1 : n
 
     model_names{i} = thisModel;
 end
-
-%% Bode plots
-% figure();
-% 
-% markerStyles = {'o', 's', 'd', '^', 'v', 'p', 'h'};
-% lineStyles = {'-', '--', ':', '-.'};
-% 
-% cm              = hsv(n);
-% cutoff_level    = -3;
-% 
-% for i = 1 : n
-%     freq_values = sin_f_data{i};
-%     mag_values = mag_data{i};
-%     pha_values = phase_data{i};
-% 
-%     mag_dB = 20 * log10(mag_values);
-% 
-%     % Reference magnitude at 0.1 Hz (first index)
-%     ref_mag_dB = mag_dB(1); % First index corresponds to 0.1 Hz
-% 
-%     cutoff_mag = ref_mag_dB - 3; % Define -3 dB cutoff level
-%     lower_cutoff_idx = find(mag_dB <= cutoff_mag, 1, 'first');
-% 
-%     if ~isempty(lower_cutoff_idx)
-%         lower_cutoff_freq = freq_values(lower_cutoff_idx);
-%     else
-%         lower_cutoff_freq = NaN;
-%     end
-% 
-%     % Determine natural frequency as the peak magnitude frequency
-%     [max_mag, max_idx] = max(mag_dB);
-%     nat_freq_Hz = freq_values(max_idx);
-% 
-%     % Magnitude plot
-%     subplot(2, 1, 1);
-%     semilogx(freq_values, mag_dB, 'o', 'MarkerSize', 1, 'Color', cm(i, :), ...
-%         'DisplayName', sprintf('%s (Original)', L_mn0_values(i)));
-%     grid on;
-%     hold on;
-% 
-%     xlabel("Frequency (Hz)", 'FontSize', 18, 'FontName', 'Times New Roman'); 
-%     ylabel("|F/X|", 'FontSize', 18, 'FontName', 'Times New Roman'); grid on;
-%     ylim([85 95]);
-% 
-%     peak_mag = mag_dB(max_idx); % Magnitude at natural frequency
-%     % plot(freq_values(max_idx), peak_mag, 'x', 'MarkerSize', 10, 'Color', cm(i, :), 'LineWidth', 2);
-%     % text(freq_values(max_idx), peak_mag + 8, sprintf('$\\mathbf{w_n \\approx %.2f}$ Hz', nat_freq_Hz), ...
-%          % 'Color', cm(i, :), 'FontSize', 20, 'HorizontalAlignment', 'center', 'Interpreter', 'latex', 'FontName', 'Times New Roman');
-%     % lower_cutoff_freq = 0;
-%     % Highlight -3 dB point
-%     if ~isnan(lower_cutoff_freq)
-%         % plot(lower_cutoff_freq, cutoff_mag, 'x', 'MarkerSize', 10, 'Color', 'black', 'LineWidth', 2);
-%         % text(lower_cutoff_freq - 15, cutoff_mag - 10, '-3dB Point', 'Color', cm(i, :), ...
-%              % 'FontSize', 15, 'HorizontalAlignment', 'center', 'FontName', 'Times New Roman');
-%     end
-% 
-%     % Define model name manually (e.g., 'TMM', 'MMM', etc.)
-%     model_name = 'MMM-DEq'; % Type manually
-% 
-%     % Bandwidth arrow using line
-%     if ~isnan(lower_cutoff_freq)
-% 
-%         bandwidth_y = cutoff_mag - 20; % Adjust height below cutoff_mag
-%         % line([0.1, lower_cutoff_freq], [bandwidth_y-1, bandwidth_y-1], 'Color', 'blue', 'LineWidth', 1.5);
-% 
-%         % Left arrowhead (< slightly inside the plot at 0.1 Hz)
-%         % text(0.1 * 1.25, bandwidth_y, '<', 'Color', 'blue', 'FontSize', 18, 'HorizontalAlignment', 'right', 'FontWeight', 'bold');
-% 
-%         % Right arrowhead (> slightly inside the plot at lower_cutoff_freq)
-%         % text(lower_cutoff_freq * 0.85, bandwidth_y, '>', 'Color', 'blue', 'FontSize', 18, 'HorizontalAlignment', 'left', 'FontWeight', 'bold');
-% 
-%         bandwidth_value = lower_cutoff_freq - 0.1; % Bandwidth in Hz
-%         mid_freq = sqrt(0.1 * lower_cutoff_freq);
-%         if isempty(model_name)
-%             warning('Model name is not specified. Please assign a value to "model_name".');
-%         end
-%         % text(mid_freq, bandwidth_y - 8, sprintf('Bandwidth: %.2f Hz (%s)', bandwidth_value, model_name), ...
-%              % 'Color', 'blue', 'FontSize', 17, 'HorizontalAlignment', 'center', 'FontWeight', 'bold', 'FontName', 'Times New Roman');
-%     end
-% 
-%     % Phase plot
-%     subplot(2, 1, 2);
-%     % plot(freq_values, pha_values, 'o', 'MarkerSize', 1, 'Color', cm(i, :), ...
-%     %     'DisplayName', sprintf('%s (Original)', variable_names{i}));
-%     semilogx(freq_values, pha_values, 'o', 'MarkerSize', 1, 'Color', cm(i, :), ...
-%         'DisplayName', sprintf('%s (Original)', damping_types{i}));
-%     grid on;
-%     hold on;
-% 
-%     xlabel("Frequency (Hz)", 'FontSize', 18, 'FontName', 'Times New Roman'); 
-%     ylabel('\angleF/X', 'FontSize', 18, 'FontName', 'Times New Roman');
-%     grid on;
-%     ylim([-50 50]);
-% 
-%     legend_entries{i} = sprintf('L^M_0 = %.2f, w_n ≈ %.2f Hz', L_mn0_values(i), nat_freqs(i));
-% end
-% 
-% % Add legends
-% subplot(2, 1, 1);
-% hold on;
-% plot_handles = [];
-% for i = 1:n
-%     plot_handles = [plot_handles; semilogx(NaN, NaN, 'o', 'MarkerSize', 13, 'Color', cm(i, :), ...
-%         'MarkerFaceColor', cm(i, :), 'DisplayName', sprintf('%s', L_mn0_values(i)))];
-% end
-% legend(plot_handles, 'Location', 'EastOutside', 'Box', 'off', 'FontSize', 15);
-% 
-% subplot(2, 1, 2);
-% hold on;
-% plot_handles_phase = [];
-% for i = 1:n
-%     plot_handles_phase = [plot_handles_phase; semilogx(NaN, NaN, 'o', 'MarkerSize', 13, 'Color', cm(i, :), ...
-%         'MarkerFaceColor', cm(i, :), 'DisplayName', sprintf('%s', L_mn0_values(i)))];
-% end
-% legend(plot_handles_phase, 'Location', 'EastOutside', 'Box', 'off', 'FontSize', 15);
-% 
-% disp('Natural frequencies for each patch: ');
-% disp(nat_freqs);
-
 
 %% For generating Single Figure
 figure();
@@ -310,10 +194,26 @@ for i = 1 : n
     freq_values = sin_f_data{idx};
     mag_values  = mag_data{idx};
     mag_dB      = 20 * log10(mag_values);
+    
+    mag_dB_plot = mag_dB;
+
+    if isPassiveMode
+        idxHF   = (freq_values >= StartHZ);
+        idxRef  = (freq_values >= refband(1)) & (freq_values < refband(2));
+
+        if nnz(idxHF) >= 3
+            mag_dB_plot(idxHF) = movmean(mag_dB_plot(idxHF), mwinPts, 'Endpoints', 'shrink');
+        end
+
+        if nnz(idxRef) >= 1
+            % plateauVal = mean(mag_dB_plot(idxRef));
+            % mag_dB_plot(idxHF) = plateauVal;
+        end
+    end
 
     str = sprintf('%s, Bandwidth: %.2f Hz', L_mn0_values(idx), lower_cutoff_freq(idx));
 
-    semilogx(ax_mag, freq_values, mag_dB, 'o-', 'MarkerSize', 4, 'LineWidth', 1.5, ...
+    semilogx(ax_mag, freq_values, mag_dB_plot, 'o-', 'MarkerSize', 4, 'LineWidth', 1.5, ...
              'Color', cm(idx, :), ...
              'DisplayName', str);
     
@@ -444,11 +344,3 @@ if isPassiveMode
         'Box', 'off', 'Orientation', 'vertical', ...
         'FontSize', 22);
 end
-
-% xlabel("Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman');
-% y1 = ylabel({'Magnitude (dB)'}, ...
-%             'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
-% grid on;
-% 
-% set(gca, 'XScale', 'log');
-% set(gca, 'FontSize', 25);
