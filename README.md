@@ -17,11 +17,12 @@ To use the Millard Muscle Model, you must include the original implementation co
 1. Create a folder named **`MMM`** in the root directory of this repository.
 2. Download the code from the official [Millard2012EquilibriumMuscleMatlabPort](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) repository.
 3. Place all the downloaded files into the `MMM` folder.
+* It is already included in this repository for your convenience.
 
 > **Note:** Without the `MMM` folder and its contents, the Millard model scripts will not function.
 
 ### 2. Running the Scripts
-Simply download the `.m` files from this repository and run them in MATLAB. No complex installation is required.
+Simply download this repository and run the .m files in MATLAB. No complex installation is required.
 
 - Open MATLAB and navigate to the repository folder.
 - Run the desired script directly from the Command Window (e.g., `TMM_active`).
