@@ -81,4 +81,6 @@ Reference:
 
 ## Revision Notes
 - **August 2025**: Initial implementation
-- **August 202
+- **August 2025**: README and main script update
+- **November 2025**: Debugged runtime errors
+- **January 2026**: Minor bug fix and refactoring
