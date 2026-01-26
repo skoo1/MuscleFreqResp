@@ -75,7 +75,7 @@ parfor k = 1 : length(frequencies)
     tic;
     freq = frequencies(k);
 
-    Fmtot = zeros(1, time_len);
+    F_m_AT = zeros(1, time_len);
 
     amp  = Amp_input;
     u    = sinwave(freq, time_array, u0, u0, amp);
@@ -91,7 +91,7 @@ parfor k = 1 : length(frequencies)
     V_mt      = 0;
     L_m_AT    = L_m_AT0;
     
-    % Calculate the force measured at the sensor Fmtot(i) along with
+    % Calculate the force measured at the sensor or F_m_AT(i)
     % as a response to the input signal u(i)
     for i = 1 : time_len
         if (i>=2)
@@ -106,19 +106,19 @@ parfor k = 1 : length(frequencies)
                                 muscleArch, normMuscleCurves, modelConfig);
         
         F_t             = mtInfo.muscleDynamicsInfo.tendonForce;
-        Fmtot(i)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+        F_m_AT(i)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
 
         V_m_AT          = mtInfo.state.derivative;
         L_m_AT          = L_m_AT + V_m_AT * dt;
 
-        A_mt    = (F_ext_equil - F_t + damp * V_mt) / mass;
+        A_mt    = (F_ext_equil - F_t - damp * V_mt) / mass;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
     end
 
     valid_range = round(time_len * 0.1) : time_len-1;
     sig_in  = u(valid_range);
-    sig_out = Fmtot(valid_range);
+    sig_out = F_m_AT(valid_range);
     
     U_fft           = fft(sig_in); 
     F_fft           = fft(sig_out);

@@ -89,7 +89,7 @@ exc          = zeros(1, length(frequencies));
 
 parfor k = 1 : length(frequencies)
     tic;
-    FmSensor    = zeros(1, time_len);
+    F_m_AT    = zeros(1, time_len);
 
     L_m_AT = L_m_AT0;
     freq = frequencies(k);
@@ -144,11 +144,10 @@ parfor k = 1 : length(frequencies)
             1e-10, [0; L_mt], L_m_AT, ...
             muscleArch, normMuscleCurves, modelConfig);
 
-        F_m_AT        = mtInfo_Eq.muscleDynamicsInfo.fiberForceAlongTendon;
-        FmSensor(i) = F_m_AT + mass * A_mt(i) + damp * V_mt(i);
+        F_m_AT(i)   = mtInfo_Eq.muscleDynamicsInfo.fiberForceAlongTendon;
     end          
 
-    sig_out   = FmSensor;
+    sig_out   = F_m_AT;
 
     X_fft           = fft(sig_in); 
     F_fft           = fft(sig_out);

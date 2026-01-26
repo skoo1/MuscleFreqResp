@@ -88,7 +88,7 @@ parfor k = 1 : length(frequencies)
     freq          = frequencies(k);
 
     L_mn          = L_mn0;
-    Fmtot         = zeros(1, time_len);
+    F_m_AT         = zeros(1, time_len);
 
     amp           = Amp_input * L_mt0 * L_mtn_target;
     L_mt_preset   = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
@@ -169,11 +169,10 @@ parfor k = 1 : length(frequencies)
             error("Fiber length is shorter than Lopt");
         end
 
-        FmAT         = F_mo * (F_an + F_pn) * cos(Alpha);
-        Fmtot(i)     = FmAT + mass * A_mt(i) + damp * V_mt(i);
+        F_m_AT(i)   = F_mo * (F_an + F_pn) * cos(Alpha);
     end          
 
-    sig_out         = Fmtot(2:time_len);
+    sig_out         = F_m_AT(2:time_len);
 
     Fs              = 1 / dt;
     n_x             = length(sig_in(2:end));

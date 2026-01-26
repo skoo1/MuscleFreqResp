@@ -75,7 +75,7 @@ parfor k = 1 : length(frequencies)
     tic;
     freq = frequencies(k);
 
-    Fmtot        = zeros(1, time_len);
+    F_m_AT    = zeros(1, time_len);
 
     amp = Amp_input;     % amplitude of the sine shape excitation signal
     u    = sinwave(freq, time_array, u0, u0, amp);
@@ -109,7 +109,7 @@ parfor k = 1 : length(frequencies)
         delta      = 1e-7;  % Perturbation step size
         tol        = 1e-8;  % Tolerance
 
-        % Calculate the force measured at the sensor Fmtot(i) along with
+        % Calculate the force measured at the sensor or F_m_AT(i)
         % as a response to the input signal u(i)
         while ( abs(real(error1)) > tol && iter_count < max_iter)
             iter_count = iter_count + 1;
@@ -160,16 +160,16 @@ parfor k = 1 : length(frequencies)
         end
 
         L_mn    = L_mnc;
-        A_mt    = (F_ext_equil - F_tn * F_mo + V_mt * damp) / mass;
+        A_mt    = (F_ext_equil - F_tn * F_mo - V_mt * damp) / mass;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
 
-        Fmtot(i)   = F_mo * (F_an + F_pn) * cos(Alpha);
+        F_m_AT(i)   = F_mo * (F_an + F_pn) * cos(Alpha);
     end
 
     valid_range     = round(time_len * 0.1) : time_len;
     sig_in          = u(valid_range);
-    sig_out         = Fmtot(valid_range);
+    sig_out         = F_m_AT(valid_range);
 
     U_fft           = fft(sig_in);
     F_fft           = fft(sig_out);
