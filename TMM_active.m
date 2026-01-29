@@ -135,7 +135,7 @@ parfor k = 1 : length(frequencies)
             eps_t_p = L_t_p / L_ts - 1;
             F_tn_p  = tendon_force_normalized(eps_t_p, TMM);
             f_l_p   = active_muscle_force_length_multiplier(L_mnc_p, TMM);
-            f_v_p   = active_muscle_force_normalized(V_mn_p, TMM);
+            f_v_p   = active_muscle_force_velocity_multiplier(V_mn_p, a(i), TMM);
             F_an_p  = a(i) * f_l_p * f_v_p;
             F_pn_p  = passive_muscle_force_normalized(L_mnc_p, TMM);
 
