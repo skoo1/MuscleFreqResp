@@ -79,10 +79,8 @@ parfor k = 1 : length(frequencies)
 
     amp = Amp_input;     % amplitude of the sine shape excitation signal
     u    = sinwave(freq, time_array, u0, u0, amp);
-    for u_temp = 1 : length(u)
-        if u(u_temp) < 0; u(u_temp) = 0; end
-        if u(u_temp) > 1.0; u(u_temp) = 1.0; end
-    end
+    u(u < 0) = 0; 
+    u(u > 1) = 1;
 
     a    = ones(1, length(u));
     a(1) = u(1);
@@ -122,8 +120,9 @@ parfor k = 1 : length(frequencies)
             eps_t  = L_t / L_ts - 1;
             F_tn   = tendon_force_normalized(eps_t, TMM);
             f_l    = active_muscle_force_length_multiplier(L_mnc, TMM);
+            f_v    = active_muscle_force_velocity_multiplier(V_mn, a(i), TMM);
+            F_an   = a(i) * f_l * f_v;
             F_pn   = passive_muscle_force_normalized(L_mnc, TMM);
-            F_an   = active_muscle_force_normalized(V_mn, f_l, a(i), TMM);
 
             error1 = F_tn - (F_pn + F_an) * cos(Alpha);
 
@@ -136,8 +135,9 @@ parfor k = 1 : length(frequencies)
             eps_t_p = L_t_p / L_ts - 1;
             F_tn_p  = tendon_force_normalized(eps_t_p, TMM);
             f_l_p   = active_muscle_force_length_multiplier(L_mnc_p, TMM);
+            f_v_p   = active_muscle_force_normalized(V_mn_p, TMM);
+            F_an_p  = a(i) * f_l_p * f_v_p;
             F_pn_p  = passive_muscle_force_normalized(L_mnc_p, TMM);
-            F_an_p  = active_muscle_force_normalized(V_mn_p, f_l_p, a(i), TMM);
 
             error2  = F_tn_p - (F_pn_p + F_an_p) * cos(Alpha_p);
 
@@ -292,7 +292,7 @@ function F_pn = passive_muscle_force_normalized(L_mn, param)
 end
 
 
-function F_mn = active_muscle_force_normalized(V_mn, f_l, a, param)
+function f_v = active_muscle_force_velocity_multiplier(V_mn, a, param)
     v1 = V_mn / (0.25 + 0.75 * a);
    
     if (V_mn <= 0)
@@ -302,7 +302,6 @@ function F_mn = active_muscle_force_normalized(V_mn, f_l, a, param)
         someth = v1 * (2 + 2 / param.A_f) / (param.F_mnlen - 1);
         f_v = (1 + param.F_mnlen * someth) / (1 + someth);
     end
-    F_mn = a * f_l * f_v;
 end
 
 

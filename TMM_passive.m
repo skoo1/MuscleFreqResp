@@ -111,8 +111,9 @@ parfor k = 1 : length(frequencies)
 
         % parfor temporary variable initialization
         Alpha = 0;
-        F_pn = 0;
-        F_an = 0;
+        F_pn  = 0;
+        F_an  = 0;
+        a     = u0
         while ( abs(real(error1)) > tol && iter_count < max_iter)
             iter_count = iter_count + 1;
 
@@ -123,8 +124,9 @@ parfor k = 1 : length(frequencies)
             eps_t = L_t / L_ts - 1;
             F_tn  = tendon_force_normalized(eps_t, TMM);
             f_l   = active_muscle_force_length_multiplier(L_mnc, TMM);
+            f_v   = active_muscle_force_velocity_multiplier(V_mn, a, TMM);
+            F_an  = a * f_l * f_v;
             F_pn  = passive_muscle_force_normalized(L_mnc, TMM);
-            F_an  = active_muscle_force_normalized(V_mn, f_l, u0, TMM);
 
             error1 = F_tn - (F_an + F_pn) * cos(Alpha);
 
@@ -132,14 +134,13 @@ parfor k = 1 : length(frequencies)
             L_m_p   = L_mo * L_mnc_p;
             Alpha_p = asin(L_m_hight/L_m_p);
             L_t_p   = L_mt - (L_mnc_p * L_mo) * cos(Alpha_p);
-            
             V_mn_p  = ((L_mnc_p - L_mn) * L_mo / dt) / V_mmax;
-            
             eps_t_p = L_t_p / L_ts - 1;
             F_tn_p  = tendon_force_normalized(eps_t_p, TMM);
             f_l_p   = active_muscle_force_length_multiplier(L_mnc_p, TMM);
+            f_v_p   = active_muscle_force_velocity_multiplier(V_mn_p, a, TMM);
+            F_an_p  = a * f_l_p * f_v_p;
             F_pn_p  = passive_muscle_force_normalized(L_mnc_p, TMM);
-            F_an_p  = active_muscle_force_normalized(V_mn_p, f_l_p, u0, TMM);
             
             error2 = F_tn_p - (F_an_p + F_pn_p) * cos(Alpha_p);
 
@@ -262,7 +263,7 @@ function f_l = active_muscle_force_length_multiplier(L_mn, param)
 end
 
 
-function F_mn = active_muscle_force_normalized(V_mn, f_l, a, param)
+function f_v = active_muscle_force_velocity_multiplier(V_mn, a, param)
     v1 = V_mn / (0.25 + 0.75 * a);
    
     if (V_mn <= 0)
@@ -272,7 +273,6 @@ function F_mn = active_muscle_force_normalized(V_mn, f_l, a, param)
         someth = v1 * (2 + 2 / param.A_f) / (param.F_mnlen - 1);
         f_v = (1 + param.F_mnlen * someth) / (1 + someth);
     end
-    F_mn = a * f_l * f_v;
 end
 
 

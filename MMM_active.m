@@ -79,10 +79,8 @@ parfor k = 1 : length(frequencies)
 
     amp  = Amp_input;
     u    = sinwave(freq, time_array, u0, u0, amp);
-    for iter = 1 : length(u)
-        if u(iter) < 0; u(iter) = 0; end
-        if u(iter) > 1.0; u(iter) = 1.0; end
-    end
+    u(u < 0) = 0; 
+    u(u > 1) = 1;
 
     a    = ones(1, length(u)) * u0;
     a(1) = u(1);
