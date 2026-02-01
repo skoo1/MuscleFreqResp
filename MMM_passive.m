@@ -12,11 +12,11 @@ U_input        = 0.0; % 1.49012e-08 Minimum in the Millard Muscle Library
 Amp_input      = 0.005;
 Mass_input     = 0.0;
 Damping_imput  = 0.0;
-SimTime_input  = 120;
+SimTime_input  = 100;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
 FreqHigh_input = 100;
-NumFreqSamples = 100;
+NumFreqSamples = 1000;
 
 % Muscle properties
 muscleName      = 'Soleus';
@@ -81,18 +81,18 @@ frequencies  = logspace(log10(freqlb), log10(freqhb), steps);
 freq_len     = length(frequencies);          
 
 % Storage initialization
-visual_result       = cell(1, 4);
-pha          = zeros(1, length(frequencies));
-sin_f        = zeros(1, length(frequencies));
-mag          = zeros(1, length(frequencies));
-exc          = zeros(1, length(frequencies));
+visual_result = cell(1, 4);
+pha           = zeros(1, length(frequencies));
+sin_f         = zeros(1, length(frequencies));
+mag           = zeros(1, length(frequencies));
+exc           = zeros(1, length(frequencies));
 
 parfor k = 1 : length(frequencies)
     tic;
-    F_m_AT    = zeros(1, time_len);
+    F_m_AT  = zeros(1, time_len);
 
-    L_m_AT = L_m_AT0;
-    freq = frequencies(k);
+    L_m_AT  = L_m_AT0;
+    freq    = frequencies(k);
 
     amp               = Amp_input * L_mt0 * L_mtn_target;
     L_mt_preset       = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
@@ -103,37 +103,37 @@ parfor k = 1 : length(frequencies)
     for i = 1 : time_len
         L_mt = L_mt_preset(i);
 
-        count = 0;
-        max_iter = 50;
-        error1 = 1.0;
-        delta = 1e-7;
+        count       = 0;
+        max_iter    = 50;
+        error1      = 1.0;
+        delta       = 1e-7;
 
         while (abs(real(error1)) > 1e-8 && count < max_iter)
-            count = count + 1;
+            count   = count + 1;
         
             mtInfo1 = calcMillard2012DampedEquilibriumMuscleInfo( ...
                 1e-10, [0; L_mt], [0; L_m_AT], ...
                 muscleArch, normMuscleCurves, modelConfig);
             
             F_m_AT1 = mtInfo1.muscleDynamicsInfo.fiberForceAlongTendon;
-            F_t1  = mtInfo1.muscleDynamicsInfo.tendonForce;
+            F_t1    = mtInfo1.muscleDynamicsInfo.tendonForce;
             error1  = F_t1 - F_m_AT1;        % error for force equilbrium (muscle, tendon)
             
-            L_m_AT_perturb = L_m_AT + delta;
-            mtInfo2 = calcMillard2012DampedEquilibriumMuscleInfo( ...
+            L_m_AT_perturb  = L_m_AT + delta;
+            mtInfo2         = calcMillard2012DampedEquilibriumMuscleInfo( ...
                 1e-10, [0; L_mt], [0; L_m_AT_perturb], ...
                 muscleArch, normMuscleCurves, modelConfig);
 
             F_m_AT2 = mtInfo2.muscleDynamicsInfo.fiberForceAlongTendon;
-            F_t2 = mtInfo2.muscleDynamicsInfo.tendonForce;
-            error2 = F_t2 - F_m_AT1;
+            F_t2    = mtInfo2.muscleDynamicsInfo.tendonForce;
+            error2  = F_t2 - F_m_AT2;
 
-            J = (error2 - error1) / delta;
+            J       = (error2 - error1) / delta;
             if abs(J) < 1e-14
-                error('기울기(Stiffness)가 0에 가까워 업데이트 할 수 없습니다.');
+                error('기울기(Stiffness)가 0에 가까워 업데이트 할 수 없습니다.'); % Needs to modify into English (260130, 13:50, KMS)
             end
 
-            L_m_AT = L_m_AT - (error1 / J);
+            L_m_AT  = L_m_AT - (error1 / J);
             if (L_m_AT < 0) || (L_m_AT > L_mt0)
                 error('Newton solver failed: Solution %.4e is out of bounds [%.4e, %.4e].', ...
                     L_m_AT, low_L_m_AT, high_L_m_AT);
