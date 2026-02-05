@@ -42,14 +42,36 @@ u0          = U_input;
 % Muscle parameter initialization
 L_mn0           = L_mn_target;
 L_m0            = L_mn_target * L_mo;
-L_mt0           = L_m0 * cos(alphaOpt) + L_ts;
-V_mt0           = V_m_target;
-V_m0            = V_m_target;
 L_m_AT0         = L_m0 * cos(alphaOpt);
+V_m0            = V_m_target;
 
 % Calculate the equilibrium external force at initial state
-F_ext_equil = findExternalForceForFiberLength( ...
-    L_m_AT0, L_ts, u0, muscleArch, normMuscleCurves, modelConfig );
+a = u0;
+L_mt_temp  = L_m_AT0 + L_ts;
+pathState   = [0, L_mt_temp];
+muscleState = [0, L_m_AT0];
+
+mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+    a, pathState, muscleState, ...
+    muscleArch, normMuscleCurves, modelConfig);
+% disp(mtInfo.initialization.err)
+
+F_m_AT  = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+F_mn_AT = F_m_AT / muscleArch.fiso;
+L_tn = calcBezierYFcnXDerivative(F_mn_AT, normMuscleCurves.tendonInverseCurve, 0);
+L_t  = L_tn * muscleArch.tendonSlackLength;
+
+pathState = [0; L_m_AT0 + L_t];
+muscleState = [0; L_m_AT0];
+
+mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+    a, pathState, muscleState, ...
+    muscleArch, normMuscleCurves, modelConfig);
+% disp(mtInfo.initialization.err)
+
+F_ext_equil = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+L_mt0 = L_m_AT0 + L_t;
+V_mt0 = V_m_target;
 
 % Dynamics simulation parameters
 totalTime  = SimTime_input;
@@ -215,22 +237,6 @@ function Tau = get_Tau(a, u, param)
 end 
 
 
-function F_ext_equil = findExternalForceForFiberLength( ...
-    L_m_AT, L_ts, u0, muscleArch, normMuscleCurves, modelConfig )
-
-    L_mt  = L_m_AT + L_ts; 
-    pathState   = [0, L_mt];
-    muscleState = [0, L_m_AT];
-
-    mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
-        u0, pathState, muscleState, ...
-        muscleArch, normMuscleCurves, modelConfig);
-
-    currentFiberForce = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-    F_ext_equil       = currentFiberForce;
-end
-
-
 function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName, muscleAbbr, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm)
 
     % 1. Default Parameters & Constants
@@ -247,6 +253,9 @@ function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName,
                                             tendonStrainAtOneNormForce,...
                                             flag_updateCurves,...
                                             flag_plotNormMuscleCurves);
+
+    normMuscleCurves.tendonInverseCurve = ...
+        createInverseBezierCurve(normMuscleCurves.tendonForceLengthCurve);
 
     % 3. Muscle Architecture Setup (muscleArch)
     muscleArch = struct();
