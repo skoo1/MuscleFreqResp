@@ -40,8 +40,6 @@ TMM = init_TMM();
 % Muscle parameter initialization
 L_mn0   = L_mn_target;
 L_m0    = L_mn0*L_mo;
-L_mt0   = L_m0 * cos(alphaOpt) + L_ts;
-V_mt0   = V_m_target;
 V_m0    = V_m_target;
 L_m_hight  = L_mo * sin(alphaOpt);
 
@@ -49,7 +47,13 @@ L_m_hight  = L_mo * sin(alphaOpt);
 f_l0    = active_muscle_force_length_multiplier(L_mn0, TMM);
 F_pn0   = passive_muscle_force_normalized(L_mn0, TMM);
 f_v0    = 1;
-F_ext_equil = F_mo * (u0 * f_l0 *f_v0 + F_pn0) * cos(alphaOpt); 
+F_tn    = (u0 * f_l0 *f_v0 + F_pn0) * cos(alphaOpt);
+eps_t   = get_tendon_strain(F_tn, TMM);
+L_t0    = L_ts * (1 + eps_t);
+L_mt0   = L_m0 * cos(alphaOpt) + L_t0;
+V_mt0   = V_m_target;
+
+F_ext_equil = F_mo * F_tn;
 
 % Dynamics simulation parameters
 totalTime  = SimTime_input;
@@ -154,17 +158,27 @@ parfor k = 1 : length(frequencies)
             % --- 4. Bounds Check ---
             if L_mnc < 0.01 
                 L_mnc = 0.01;
-            elseif L_mnc > 1.0
-                L_mnc = 1.0;
+            elseif L_mnc > 2.0
+                L_mnc = 2.0;
             end
         end
 
+        % internal equilibrium
         L_mn    = L_mnc;
+        L_m     = L_mnc * L_mo;
+        Alpha   = asin(L_m_hight/L_m);
+        L_t     = L_mt - L_m * cos(Alpha);
+        eps_t   = L_t / L_ts - 1;
+        F_tn    = tendon_force_normalized(eps_t, TMM);
+        F_t     = F_tn * F_mo;
+        F_m     = F_t / cos(Alpha);
+
+        % external equilibrium
         A_mt    = (F_ext_equil - F_tn * F_mo - V_mt * damp) / mass;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
 
-        F_m_AT(i)   = F_mo * (F_an + F_pn) * cos(Alpha);
+        F_m_AT(i)   = F_t;
     end
 
     valid_range     = round(time_len * 0.1) : time_len;
@@ -311,6 +325,7 @@ function F_tn = tendon_force_normalized(eps_t, param)
     else
         F_tn = param.K_lin * (eps_t - param.EPSttoe) + param.F_ttoe;
     end 
+    if F_tn < 0, F_tn = 0; end
 end
 
 
