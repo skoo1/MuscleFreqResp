@@ -1,5 +1,5 @@
 % By Minseung Kim and Seungbum Koo
-% January 29, 2026
+% February 5, 2026
 
 clc; clear;
 addpath('.\MMM\src\');
@@ -11,7 +11,7 @@ V_m_input      = 0.0;
 U_input        = 0.5;
 Amp_input      = 0.01;
 Mass_input     = 3e9;
-Damping_imput  = 0.0;
+Damping_input  = 0.0;
 SimTime_input  = 100;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
@@ -28,7 +28,7 @@ V_mmax_norm     = 10;
 
 % External dynamics parameters
 mass = Mass_input;
-damp = Damping_imput;
+damp = Damping_input;
 
 % Operating point
 L_mn_target = L_mn_input; 
@@ -147,7 +147,7 @@ visual_result{4} = exc;
 % Format:: MMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
 if exist('mass','var')
-    if abs(mass - 3e8) < 1e-6     % 300000000 kg → isometric
+    if abs(mass - 3e9) < 1e-6     % 3e9 kg → isometric
         mass_label = 'isometric';
     else
         mass_label = [num2str(mass) 'kg'];

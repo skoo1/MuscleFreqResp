@@ -1,17 +1,17 @@
 % By Minseung Kim and Seungbum Koo
-% January 26, 2026
+% February 5, 2026
 
 clc; clear;
 addpath('.\MMM\src\');
 
 % Sim configuration
-L_mtn_intput   = 1.05;
+L_mtn_input    = 1.05;
 % L_mn_input   = 1.0; % for passive test
 % V_m_input    = 0.0; % for passive test
 U_input        = 0.0; % 1.49012e-08 Minimum in the Millard Muscle Library
 Amp_input      = 0.005;
 Mass_input     = 0.0;
-Damping_imput  = 0.0;
+Damping_input  = 0.0;
 SimTime_input  = 100;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
@@ -28,10 +28,10 @@ V_mmax_norm     = 10;
 
 % External dynamics parameters
 mass         = Mass_input;
-damp         = Damping_imput;
+damp         = Damping_input;
 
 % Operating point
-L_mtn_target    = L_mtn_intput;
+L_mtn_target    = L_mtn_input;
 
 % Load Millard-Muscle model parameters
 [muscleArch, normMuscleCurves, modelConfig, MMM] = ...
@@ -130,7 +130,7 @@ parfor k = 1 : length(frequencies)
 
             J       = (error2 - error1) / delta;
             if abs(J) < 1e-14
-                error('기울기(Stiffness)가 0에 가까워 업데이트 할 수 없습니다.'); % Needs to modify into English (260130, 13:50, KMS)
+                error('Cannot update: stiffness is close to zero.');
             end
 
             L_m_AT  = L_m_AT - (error1 / J);
@@ -156,7 +156,7 @@ parfor k = 1 : length(frequencies)
     n_x             = length(sig_in);
     f               = (0 : n_x - 1) * (Fs / n_x);
 
-    [~, idx]     = min(abs(f - freq));
+    [~, idx]        = min(abs(f - freq));
 
     sin_f(k)        = freq;
     mag  (k)        = abs(F_fft(idx) / X_fft(idx));
