@@ -5,7 +5,7 @@ clc; clear;
 addpath('.\MMM\src\');
 
 % Sim configuration
-% L_mtn_intput = 1.05; % for passive test
+% L_mtn_input  = 1.05; % for passive test
 L_mn_input     = 1.0;
 V_m_input      = 0.0;
 U_input        = 0.5;
