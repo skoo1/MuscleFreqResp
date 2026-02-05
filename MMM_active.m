@@ -5,13 +5,13 @@ clc; clear;
 addpath('.\MMM\src\');
 
 % Sim configuration
-% L_mtn_intput = 1.05; % for passive test
+% L_mtn_input  = 1.05; % for passive test
 L_mn_input     = 1.0;
 V_m_input      = 0.0;
 U_input        = 0.5;
 Amp_input      = 0.01;
 Mass_input     = 3e9;
-Damping_imput  = 0.0;
+Damping_input  = 0.0;
 SimTime_input  = 120;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
@@ -28,7 +28,7 @@ V_mmax_norm     = 10;
 
 % External dynamics parameters
 mass = Mass_input;
-damp = Damping_imput;
+damp = Damping_input;
 
 % Operating point
 L_mn_target = L_mn_input; 

@@ -1,21 +1,21 @@
 % By Minseung Kim and Seungbum Koo
-% January 26, 2026
+% February 5, 2026
 
 clear; clc;
 
 % Sim configuration
-L_mtn_intput = 1.05; % for passive test
-% L_mn_input     = 1.0;
-% V_m_input      = 0.0;
+L_mtn_input    = 1.05; % for passive test
+% L_mn_input   = 1.0;
+% V_m_input    = 0.0;
 U_input        = 0.0;
 Amp_input      = 0.005;
 Mass_input     = 0.0;
-Damping_imput  = 0.0;
-SimTime_input  = 120;
+Damping_input  = 0.0;
+SimTime_input  = 100;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
 FreqHigh_input = 100;
-NumFreqSamples = 100;
+NumFreqSamples = 1000;
 
 % Muscle properties
 muscleName = 'Soleus';
@@ -26,14 +26,14 @@ alphaOpt   = 0.4363;    % Pennation angle at optimal muscle length (rad)
 V_mmax     = 10 * L_mo;
 
 % External dynamics parameters
-mass         = Mass_input;
-damp         = Damping_imput;
+mass          = Mass_input;
+damp          = Damping_input;
 
 % Operating point
-L_mtn_target = L_mtn_intput;
+L_mtn_target  = L_mtn_input;
 
 % Load Thelen-Muscle model parameters
-TMM = init_TMM();
+TMM           = init_TMM();
 
 L_mt0         = L_mo * cos(alphaOpt) + L_ts;
 L_m_hight     = L_mo * sin(alphaOpt);
@@ -43,14 +43,14 @@ high_L_mn     = 2.0;
 error1        = 1000;
 
 while (abs(real(error1)) > 1e-11)
-    L_mn = 1/2 * (low_L_mn + high_L_mn);
-    L_m  = L_mn * L_mo;
-    Alpha = asin(L_m_hight/L_m);
-    L_t  = L_mtn_target * L_mt0 - L_m * cos(Alpha);
-    eps_t = L_t / L_ts - 1;
+    L_mn   = 1/2 * (low_L_mn + high_L_mn);
+    L_m    = L_mn * L_mo;
+    Alpha  = asin(L_m_hight/L_m);
+    L_t    = L_mtn_target * L_mt0 - L_m * cos(Alpha);
+    eps_t  = L_t / L_ts - 1;
 
-    F_tn  = tendon_force_normalized(eps_t, TMM);
-    F_pn  = passive_muscle_force_normalized(L_mn, TMM);
+    F_tn   = tendon_force_normalized(eps_t, TMM);
+    F_pn   = passive_muscle_force_normalized(L_mn, TMM);
 
     error1 = F_tn - F_pn * cos(Alpha);
 
@@ -78,17 +78,17 @@ freq_len    = length(frequencies);
 
 % Storage initialization
 visual_result = cell(1, 4);
-pha          = zeros(1, length(frequencies));
-sin_f        = zeros(1, length(frequencies));
-mag          = zeros(1, length(frequencies));
-exc          = zeros(1, length(frequencies));
+pha           = zeros(1, length(frequencies));
+sin_f         = zeros(1, length(frequencies));
+mag           = zeros(1, length(frequencies));
+exc           = zeros(1, length(frequencies));
 
 parfor k = 1 : length(frequencies)
     tic;
     freq          = frequencies(k);
 
     L_mn          = L_mn0;
-    F_m_AT         = zeros(1, time_len);
+    F_m_AT        = zeros(1, time_len);
 
     amp           = Amp_input * L_mt0 * L_mtn_target;
     L_mt_preset   = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
@@ -100,25 +100,25 @@ parfor k = 1 : length(frequencies)
         L_mt        = L_mt_preset(i);
 
         % initial value
-        L_mnc = L_mn;
+        L_mnc       = L_mn;
 
         % Solver parameters
-        max_iter   = 50;
-        iter_count = 0;
-        error1     = 1.0;
-        delta      = 1e-7;
-        tol        = 1e-8;
+        max_iter    = 50;
+        iter_count  = 0;
+        error1      = 1.0;
+        delta       = 1e-7;
+        tol         = 1e-8;
 
         % parfor temporary variable initialization
-        Alpha = 0;
-        F_pn  = 0;
-        F_an  = 0;
-        a     = u0
+        Alpha       = 0;
+        F_pn        = 0;
+        F_an        = 0;
+        a           = u0
         while ( abs(real(error1)) > tol && iter_count < max_iter)
             iter_count = iter_count + 1;
 
             L_m   = L_mo * L_mnc;
-            Alpha = asin(L_m_hight/L_m);
+            Alpha = asin(L_m_hight / L_m);
             L_t   = L_mt - (L_mnc * L_mo) * cos(Alpha);
             V_mn  = ((L_mnc - L_mn) * L_mo / dt) / V_mmax;
             eps_t = L_t / L_ts - 1;
@@ -128,11 +128,11 @@ parfor k = 1 : length(frequencies)
             F_an  = a * f_l * f_v;
             F_pn  = passive_muscle_force_normalized(L_mnc, TMM);
 
-            error1 = F_tn - (F_an + F_pn) * cos(Alpha);
+            error1  = F_tn - (F_an + F_pn) * cos(Alpha);
 
             L_mnc_p = L_mnc + delta;
             L_m_p   = L_mo * L_mnc_p;
-            Alpha_p = asin(L_m_hight/L_m_p);
+            Alpha_p = asin(L_m_hight / L_m_p);
             L_t_p   = L_mt - (L_mnc_p * L_mo) * cos(Alpha_p);
             V_mn_p  = ((L_mnc_p - L_mn) * L_mo / dt) / V_mmax;
             eps_t_p = L_t_p / L_ts - 1;
@@ -142,7 +142,7 @@ parfor k = 1 : length(frequencies)
             F_an_p  = a * f_l_p * f_v_p;
             F_pn_p  = passive_muscle_force_normalized(L_mnc_p, TMM);
             
-            error2 = F_tn_p - (F_an_p + F_pn_p) * cos(Alpha_p);
+            error2  = F_tn_p - (F_an_p + F_pn_p) * cos(Alpha_p);
 
             J = (error2 - error1) / delta;
             
@@ -150,7 +150,7 @@ parfor k = 1 : length(frequencies)
                 J = 1e-14;
             end
             
-            step = error1 / J;
+            step  = error1 / J;
             L_mnc = L_mnc - step;
             
             if L_mnc < 0.01 
@@ -204,7 +204,7 @@ visual_result{4} = exc;
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
 if exist('mass','var')
-    if abs(mass - 3e8) < 1e-6     % 300000000 kg → static
+    if abs(mass - 3e9) < 1e-6     % 3e9 kg → static
         mass_label = 'isometric';
     else
         mass_label = [num2str(mass) 'kg'];
@@ -218,8 +218,8 @@ if ~exist(saveFolder, 'dir')
     mkdir(saveFolder);
 end
 
-fileName = [num2str(L_mtn_target) '_' num2str(u0) '_' muscleName '_YB_wod_aF_passive.mat'];
-fullPath = fullfile(saveFolder, fileName);
+fileName        = [num2str(L_mtn_target) '_' num2str(u0) '_' muscleName '_YB_wod_aF_passive.mat'];
+fullPath        = fullfile(saveFolder, fileName);
 savingdata_freq = visual_result;
 save(fullPath, 'savingdata_freq');
 
@@ -271,7 +271,7 @@ function f_v = active_muscle_force_velocity_multiplier(V_mn, a, param)
     else
         % When V is positive
         someth = v1 * (2 + 2 / param.A_f) / (param.F_mnlen - 1);
-        f_v = (1 + param.F_mnlen * someth) / (1 + someth);
+        f_v    = (1 + param.F_mnlen * someth) / (1 + someth);
     end
 end
 
