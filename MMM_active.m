@@ -71,7 +71,7 @@ mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
 
 F_ext_equil = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
 L_mt0 = L_m_AT0 + L_t;
-V_mt0 = V_m_target;
+% V_mt0 = V_mt_target;
 
 % Dynamics simulation parameters
 totalTime  = SimTime_input;
@@ -126,7 +126,7 @@ parfor k = 1 : length(frequencies)
                                 muscleArch, normMuscleCurves, modelConfig);
         
         F_t             = mtInfo.muscleDynamicsInfo.tendonForce;
-        F_m_AT(i)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+        F_m_AT(i)       = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
 
         V_m_AT          = mtInfo.state.derivative;
         L_m_AT          = L_m_AT + V_m_AT * dt;
