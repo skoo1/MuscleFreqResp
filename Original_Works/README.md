@@ -4,8 +4,7 @@ This repository contains MATLAB implementations of two numerical Hill-type muscl
 
 The repository includes:
 - MATLAB code, tested on **Windows 11** using **MATLAB R2025b**
-- Implementations of the Thelen (2003) 
-- Frequency response of Thelen (2003) and Millard (2012) muscles for active and passive tests in our paper (It will be noted here when it is published)
+- Implementations of the Thelen (2003) and Millard (2012) muscle models
 - Scripts for generating Bode plots for both active and passive state analyses
 
 ---
@@ -26,7 +25,7 @@ To use the Millard Muscle Model, you must include the original implementation co
 Simply download this repository and run the .m files in MATLAB. No complex installation is required.
 
 - Open MATLAB and navigate to the repository folder.
-- Run the main.m which runs active and passive tests on the muscles. 
+- Run the desired script directly from the Command Window (e.g., `TMM_active`).
 
 ---
 
@@ -47,15 +46,31 @@ The Millard model is implemented using the official [MATLAB port](https://github
 Reference:
 > Millard, M., Uchida, T., Seth, A., & Delp, S. L. (2013). Flexing computational muscle: modeling and simulation of musculotendon dynamics. *Journal of Biomechanical Engineering*, 135(2), 021005.
 
+**Implementation Notes**
+- This project provides wrapper scripts that configure and test three variants:
+  - `MMM` (classic model)
+  - `MMM-DEq` (damped-equilibrium version)
+  - `MMM-Rigid` (rigid-tendon condition)
+
 ---
 
 # Result Images
 
-## Active Tests on Thelen (2003) and Millard (2012)
-<img src="./images/active_results.png" alt="Active Results" width="400" />
+## Thelen Muscle Model Active Test
+#### >> TMM_active
+<img src="./images/TMM_active_result.png" alt="Thelen Active Result" width="400" />
 
-## Passive Tests on Thelen (2003) and Millard (2012)
-<img src="./images/passive_results.png" alt="Passive Results" width="400" />
+## Thelen Muscle Model Passive Test
+#### >> TMM_passive
+<img src="./images/TMM_passive_result.png" alt="Thelen Passive Result" width="400" />
+
+## Millard Muscle Model Active Test
+#### >> MMM_active
+<img src="./images/MMM_active_result.png" alt="Millard Active Result" width="400" />
+
+## Millard Muscle Model Passive Test
+#### >> MMM_passive
+<img src="./images/MMM_passive_result.png" alt="Millard Passive Result" width="400" />
 
 ---
 
@@ -70,4 +85,3 @@ Reference:
 - **August 2025**: README and main script update
 - **November 2025**: Debugged runtime errors
 - **January 2026**: Minor bug fix and refactoring
-- **February 2026**: Tests are structured using Matlab class
