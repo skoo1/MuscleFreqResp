@@ -13,13 +13,13 @@ classdef MillardMuscle < MuscleModel
         ModelConfig
         MTInfo
     end
-    
+
     methods
         function obj = MillardMuscle(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping)
             obj@MuscleModel(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping);
             obj.init_parameters();
         end
-        
+
         function [L_mt, F_equil, Alpha] = initialize_static_given_Lm(obj, a, L_m)
             Alpha = obj.calc_pennation_angle(L_m);
             L_m_AT = L_m*cos(Alpha);
@@ -68,14 +68,14 @@ classdef MillardMuscle < MuscleModel
 
         function [L_m, F_t, Alpha] = initialize_static_given_Lmt(obj, a, L_mt)
             % Initially V_mt = 0
-            V_mt = 0;
+            V_mt        = 0;
             pathState   = [V_mt; L_mt];
 
-            low_L_m_AT          = 0.0;
-            high_L_m_AT         = L_mt - 1e-5;
-            error1              = 1000;
+            low_L_m_AT  = 0.0;
+            high_L_m_AT = L_mt - 1e-5;
+            err         = 1000;
 
-            while abs(real(error1)) > 1e-8
+            while abs(real(err)) > 1e-8
                 L_m_AT = 1/2 * (low_L_m_AT + high_L_m_AT);
                 muscleState = [0, L_m_AT]; % input V_m_AT and L_m_AT
 
@@ -87,9 +87,9 @@ classdef MillardMuscle < MuscleModel
                 F_m_AT = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
                 F_t    = mtInfo.muscleDynamicsInfo.tendonForce;
 
-                error1 = F_t - F_m_AT;
+                err = F_t - F_m_AT;
 
-                if (error1 < 0)
+                if (err < 0)
                     high_L_m_AT = L_m_AT;
                 else
                     low_L_m_AT = L_m_AT;
@@ -115,18 +115,18 @@ classdef MillardMuscle < MuscleModel
             % Update Activation
             da_dt = obj.getActivationRate(u, obj.a);
             a = obj.a + dt * da_dt;
- 
+
             % Calculate Dynamics using Millard API
             L_m    = obj.L_m;
             Alpha = obj.calc_pennation_angle(L_m);
             L_m_AT = L_m * cos(Alpha);
             pathState = [obj.V_mt; obj.L_mt];
             muscleState = L_m_AT; % Scalar input means compute derivative
-            
+
             mtInfo = calcMillard2012DampedEquilibriumMuscleInfo(...
                 a, pathState, muscleState, ...
                 obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
-            
+
             F_t = mtInfo.muscleDynamicsInfo.tendonForce;
 
             % Update muscle length
@@ -154,14 +154,14 @@ classdef MillardMuscle < MuscleModel
         function F_t = updateDynamicsQuasiStatic(obj, dt, u, L_mt, V_mt)
             obj.L_mt = L_mt;
             obj.V_mt = V_mt; % quasi-static condition
-            
+
             % Activation dynamics
             da_dt = obj.getActivationRate(u, obj.a);
             a = obj.a + dt * da_dt;
 
             % Kinematically driven
             pathState   = [V_mt; L_mt];
-            
+
             % Initial value
             L_m_AT      = obj.L_m * cos(obj.calc_pennation_angle(obj.L_m));
             L_m_AT_old  = L_m_AT;
@@ -170,13 +170,13 @@ classdef MillardMuscle < MuscleModel
             max_iter    = 50;
             err         = 1.0;
             delta       = 1e-7;
-    
+
             while (abs(real(err)) > 1e-8 && count < max_iter)
                 count   = count + 1;
 
                 V_m_AT = (L_m_AT - L_m_AT_old)/dt;
                 muscleState = [V_m_AT; L_m_AT]; % these two should be found
-                
+
                 % the following calculates force balance error F_m_AT - F_t
                 mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
                     a, pathState, muscleState, ...
@@ -185,7 +185,7 @@ classdef MillardMuscle < MuscleModel
                 F_m_AT = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
                 F_t    = mtInfo.muscleDynamicsInfo.tendonForce;
                 err  = F_t - F_m_AT;  % error of force equilbrium
-    
+
                 L_m_AT_p = L_m_AT + delta;
                 V_m_AT_p = (L_m_AT_p - L_m_AT_old)/dt;
 
@@ -194,16 +194,16 @@ classdef MillardMuscle < MuscleModel
                 mtInfo_p = calcMillard2012DampedEquilibriumMuscleInfo( ...
                     a, pathState, muscleState_p, ...
                     obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
-    
+
                 F_m_AT_p = mtInfo_p.muscleDynamicsInfo.fiberForceAlongTendon;
                 F_t_p    = mtInfo_p.muscleDynamicsInfo.tendonForce;
                 err_p  = F_t_p - F_m_AT_p;
-    
+
                 J       = (err_p - err) / delta;
                 if abs(J) < 1e-14
                     error('Cannot update: stiffness is close to zero.');
                 end
-    
+
                 L_m_AT  = L_m_AT - (err / J);
                 if (L_m_AT < 1e-6) || (L_m_AT > L_mt)
                     error('Newton solver failed: Solution %.4e is out of bounds [%.4e, %.4e].', ...
@@ -239,7 +239,7 @@ classdef MillardMuscle < MuscleModel
             else
                 tau = p.Tau_d / (0.5 + 1.5 * a);
             end
-        end         
+        end
     end
     
     methods (Access = private)
@@ -296,7 +296,7 @@ classdef MillardMuscle < MuscleModel
                         maximumPennationAngle,...
                         muscleArch.optimalFiberLength,...
                         muscleArch.pennationAngle);
-            
+
             muscleArch.minimumFiberLength = ...
                        minFiberKinematics.minimumFiberLength;
             muscleArch.minimumFiberLengthAlongTendon =...

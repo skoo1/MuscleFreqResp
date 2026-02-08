@@ -23,17 +23,17 @@ classdef ThelenMuscle < MuscleModel
             f_v  = 1.0; % f_v is 1.0 at static
             F_pn = obj.passive_muscle_force_normalized(L_m);
             F_an = a * f_l * f_v;
-            
+
             % Projected Muscle Force (Normalized)
             F_mn_AT = (F_an + F_pn) * cos(Alpha);
-            
+
             % Equilibrium: F_tendon MUST equal F_muscle_proj
             F_tn = F_mn_AT;
             F_equil = F_tn * obj.F_mo;
-            
+
             % Inverse Tendon Model: Find strain (eps_t) from Force (F_tn)
             eps_t = obj.get_tendon_strain_from_force(F_tn);
-            
+
             % Calculate L_mt
             L_t = obj.L_ts * (1 + eps_t);
             L_mt = L_m * cos(Alpha) + L_t;
@@ -60,7 +60,7 @@ classdef ThelenMuscle < MuscleModel
                 Alpha  = obj.calc_pennation_angle(L_m);
                 L_t    = L_mt - L_m * cos(Alpha);
                 eps_t  = L_t / obj.L_ts - 1;
-            
+
                 F_tn   = obj.get_tendon_force_normalized_from_strain(eps_t);
                 F_pn   = obj.passive_muscle_force_normalized(L_mn);
                 % Assume a = 0, thus muscle active force F_an = zero 
@@ -85,7 +85,6 @@ classdef ThelenMuscle < MuscleModel
             obj.F_t  = F_t;
             obj.F_m  = obj.F_t / cos(Alpha);
         end
-
 
         function F_t = updateDynamics(obj, dt, u, F_ext_equil, mass_ext, damping_ext)
             % --- External interaction: Environment involves F_ext_equil, mass_ext, and damping_ext ---
@@ -130,7 +129,7 @@ classdef ThelenMuscle < MuscleModel
                 % Clamp
                 if L_mnc < 0.01, L_mnc = 0.01; elseif L_mnc > 2.0, L_mnc = 2.0; end
             end
-            
+
             % Update Internal States: Finalize Muscle-Tendon force at equilibrium
             L_m  = L_mnc * obj.L_mo;
             alpha = obj.calc_pennation_angle(L_m);
@@ -159,7 +158,7 @@ classdef ThelenMuscle < MuscleModel
         function F_t = updateDynamicsQuasiStatic(obj, dt, u, L_mt, V_mt)
             obj.L_mt = L_mt;
             obj.V_mt = V_mt; % quasi-static condition
-            
+
             % activation dynamics
             da_dt = obj.getActivationRate(u, obj.a);
             a = obj.a + dt * da_dt;
@@ -198,7 +197,6 @@ classdef ThelenMuscle < MuscleModel
                 error('Newton solver failed to converge within %d iterations (Error: %.2e).', max_iter, err);
             end
 
-
             % Update Internal States: Finalize Muscle-Tendon force at equilibrium
             L_m  = L_mnc * obj.L_mo;
             alpha = obj.calc_pennation_angle(L_m);
@@ -207,12 +205,6 @@ classdef ThelenMuscle < MuscleModel
             F_tn  = obj.get_tendon_force_normalized_from_strain(eps_t);
             F_t   = F_tn * obj.F_mo;
             F_m   = F_t / cos(alpha);
-
-            % Update External Dynamics: Interaction with environment (Mass-Damper)
-            % Compute acceleration based on net force (External - Muscle Tension)
-            % A_mt = (F_ext_equil - F_t - damping_ext * obj.V_mt) / mass_ext;
-            % V_mt = obj.V_mt + A_mt * dt;
-            % L_mt = L_mt + V_mt * dt;
 
             obj.a    = a;
             obj.V_m  = (L_m - obj.L_m) / dt;
@@ -232,7 +224,7 @@ classdef ThelenMuscle < MuscleModel
             else
                 tau = p.Tau_d / (0.5 + 1.5 * a);
             end
-        end        
+        end
     end
 
     methods (Access = private)
@@ -268,7 +260,7 @@ classdef ThelenMuscle < MuscleModel
 
             err = F_tn - (F_pn + F_an) * cos(alpha);
         end
-        
+
         function F_tn = get_tendon_force_normalized_from_strain(obj, eps_t)
             p = obj.TMM;
             if eps_t <= p.EPSttoe
@@ -285,7 +277,7 @@ classdef ThelenMuscle < MuscleModel
             eps_t1 = p.EPSttoe / p.K_toe * log(F_tn / p.F_ttoe * (exp(p.K_toe) - 1) + 1);
             % tendon strain with linear behavior
             eps_t2 = (F_tn - p.F_ttoe) / p.K_lin + p.EPSttoe;
-            
+
             if (F_tn <= p.F_ttoe)
                 eps_t = eps_t1;
             else

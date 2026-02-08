@@ -70,7 +70,7 @@ function results = run_passive_test(muscleModel)
         % A_mt          = -amp * (2 * pi * freq)^2 * sin(2 * pi * freq * time_array);
         % starts from static condition
         % muscleModel.V_m  = 0; % from initialization
-    
+
         % --- Time Integration Loop ---
         for i = 2 : time_len
         % Update Muscle Dynamics
@@ -89,16 +89,16 @@ function results = run_passive_test(muscleModel)
         valid_range = round(time_len * 0.1) : time_len;
         sig_in  = L_mt_preset(valid_range);
         sig_out = F_m_AT(valid_range);
-        
+
         U_fft = fft(sig_in);
         F_fft = fft(sig_out);
-        
+
         Fs     = 1 / dt;
         n_x    = length(sig_in);
         f_axis = (0 : n_x - 1) * (Fs / n_x);
-        
+
         [~, idx] = min(abs(f_axis - freq));
-        
+
         sin_f(k) = freq;
         mag(k)   = abs(F_fft(idx) / U_fft(idx));
         pha(k)   = angle(F_fft(idx)) - angle(U_fft(idx));
@@ -110,19 +110,19 @@ function results = run_passive_test(muscleModel)
     % Finalize Results
     % Unwrap Phase
     pha = unwrap(pha) * (180 / pi);
-    
+
     results{1} = sin_f;
     results{2} = mag;
     results{3} = pha;
     results{4} = exc;
-    
+
     % Plotting (Graph Drawing)
     % Create a new figure for the Bode Plot
     figure('Name', ['Passive Test - ' muscleModel.MuscleName]);
     sgtitle(sprintf('Bode plot w/ u_{0} = %.2f (%s)', u0, muscleModel.MuscleName), 'FontSize', 16);
-    
+
     mag_db = 20 * log10(mag); % Convert magnitude to dB
-    
+
     % Subplot 1: Magnitude Response
     subplot(2, 1, 1);
     semilogx(sin_f, mag_db, '-o', 'MarkerSize', 3, 'LineWidth', 1.5);
@@ -131,7 +131,7 @@ function results = run_passive_test(muscleModel)
     xlim([0.1 100]);
     ylim([10 100]);
     title('Magnitude Response');
-    
+
     % Subplot 2: Phase Response
     subplot(2, 1, 2);
     semilogx(sin_f, pha, '-o', 'MarkerSize', 3, 'LineWidth', 1.5);
@@ -141,5 +141,4 @@ function results = run_passive_test(muscleModel)
     xlim([0.1 100]);
     ylim([-180 10]);
     title('Phase Response');
-
 end

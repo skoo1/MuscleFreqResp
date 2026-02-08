@@ -5,7 +5,7 @@
 classdef (Abstract) MuscleModel < handle
     % MUSCLEMODEL Abstract base class for muscle models
     %   Defines the interface for muscle properties and dynamics updates.
-    
+
     properties
         MuscleName
         F_mo        % Max Isometric Force (N)
@@ -14,8 +14,8 @@ classdef (Abstract) MuscleModel < handle
         AlphaOpt    % Pennation Angle at L_mo (rad)
         Mass        % Muscle Mass (kg)
         Damping     % Viscous Damping (Ns/m)
-        V_m_max     % maximum muscle velocity (m/s)
-        
+        V_m_max     % Maximum Muscle Velocity (m/s)
+
         % Internal States
         a           % Activation (0-1)
         L_m         % Fiber Length (m)
@@ -26,7 +26,7 @@ classdef (Abstract) MuscleModel < handle
         F_t         % Tendon Force (N)
         F_m         % Fiber Force (N)
     end
-    
+
     methods
         function obj = MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping)
             obj.MuscleName = name;
@@ -37,15 +37,15 @@ classdef (Abstract) MuscleModel < handle
             obj.Mass = mass;
             obj.Damping = damping;
             obj.V_m_max = 10 * L_mo; % according to literature
-            
+
             % Default Initialization
             obj.a = 0;
             obj.L_mt = L_mo * cos(alphaOpt) + L_ts;
             obj.L_m  = L_mo * cos(alphaOpt); % Default projected length
         end
-        
+
         % --- Abstract Methods (Must be implemented by subclasses) ---
-        
+
         % Initialize internal states (find equilibrium)
         [L_mt, F_equil, Alpha] = initialize_static_given_Lm(obj, a0, L_m0);
         [L_m0, F_t0, Alpha0]   = initialize_static_given_Lmt(obj, a0, L_mt0);
@@ -58,7 +58,7 @@ classdef (Abstract) MuscleModel < handle
         % Get muscle specific activation/deactivation time constant
         tau = get_Tau(obj, u, a);
     end
-    
+
     methods (Access = protected)
         % Common helper
         function da_dt = getActivationRate(obj, u, a)
