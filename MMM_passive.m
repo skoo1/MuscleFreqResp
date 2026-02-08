@@ -12,11 +12,11 @@ U_input        = 0.0; % 1.49012e-08 Minimum in the Millard Muscle Library
 Amp_input      = 0.005;
 Mass_input     = 0.0;
 Damping_input  = 0.0;
-SimTime_input  = 100;
+SimTime_input  = 120;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
 FreqHigh_input = 100;
-NumFreqSamples = 1000;
+NumFreqSamples = 100;
 
 % Muscle properties
 muscleName      = 'Soleus';
@@ -40,7 +40,7 @@ L_mtn_target    = L_mtn_input;
 L_mt0               = L_ts + L_mo * cos(alphaOpt);
 
 low_L_m_AT          = 0.0;
-high_L_m_AT         = L_mt0;
+high_L_m_AT         = L_mtn_target * L_mt0;
 error1              = 1000;
 
 while abs(real(error1)) > 1e-8
@@ -96,12 +96,14 @@ parfor k = 1 : length(frequencies)
 
     amp               = Amp_input * L_mt0 * L_mtn_target;
     L_mt_preset       = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
-    V_mt              = amp * 2 * pi * freq * cos(2 * pi * freq * time_array);
+    V_mt_preset       = amp * 2 * pi * freq * cos(2 * pi * freq * time_array);
     A_mt              = -amp * (2 * pi * freq)^2 * sin(2 * pi * freq * time_array);
     sig_in            = L_mt_preset;
 
     for i = 1 : time_len
         L_mt = L_mt_preset(i);
+        V_mt = V_mt_preset(i);
+        L_m_AT_old = L_m_AT;
 
         count       = 0;
         max_iter    = 50;
@@ -110,9 +112,12 @@ parfor k = 1 : length(frequencies)
 
         while (abs(real(error1)) > 1e-8 && count < max_iter)
             count   = count + 1;
-        
-            mtInfo1 = calcMillard2012DampedEquilibriumMuscleInfo( ...
-                1e-10, [0; L_mt], [0; L_m_AT], ...
+    
+            V_m_AT = (L_m_AT - L_m_AT_old)/dt;
+            % muscleState = [V_m_AT, L_m_AT]; % these two should be found
+
+            mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+                1e-10, [V_mt; L_mt], [V_m_AT; L_m_AT], ...
                 muscleArch, normMuscleCurves, modelConfig);
             
             F_m_AT1 = mtInfo1.muscleDynamicsInfo.fiberForceAlongTendon;
@@ -120,8 +125,10 @@ parfor k = 1 : length(frequencies)
             error1  = F_t1 - F_m_AT1;        % error for force equilbrium (muscle, tendon)
             
             L_m_AT_perturb  = L_m_AT + delta;
+            V_m_AT_perturb  = (L_m_AT_perturb - L_m_AT_old)/dt;
+
             mtInfo2         = calcMillard2012DampedEquilibriumMuscleInfo( ...
-                1e-10, [0; L_mt], [0; L_m_AT_perturb], ...
+                1e-10, [V_mt; L_mt], [V_m_AT_p; L_m_AT_p], ...
                 muscleArch, normMuscleCurves, modelConfig);
 
             F_m_AT2 = mtInfo2.muscleDynamicsInfo.fiberForceAlongTendon;

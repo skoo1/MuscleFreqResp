@@ -11,11 +11,11 @@ U_input        = 0.0;
 Amp_input      = 0.005;
 Mass_input     = 0.0;
 Damping_input  = 0.0;
-SimTime_input  = 100;
+SimTime_input  = 120;
 SimDt_input    = 0.001;
 FreqLow_input  = 0.1;
 FreqHigh_input = 100;
-NumFreqSamples = 1000;
+NumFreqSamples = 100;
 
 % Muscle properties
 muscleName = 'Soleus';
@@ -94,7 +94,6 @@ parfor k = 1 : length(frequencies)
     L_mt_preset   = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
     V_mt          = amp * 2 * pi * freq * cos(2 * pi * freq * time_array);
     A_mt          = -amp * (2 * pi * freq)^2 * sin(2 * pi * freq * time_array);
-    sig_in        = L_mt_preset;
 
     for i = 2 : time_len
         L_mt        = L_mt_preset(i);
@@ -113,7 +112,7 @@ parfor k = 1 : length(frequencies)
         Alpha       = 0;
         F_pn        = 0;
         F_an        = 0;
-        a           = u0
+        a           = u0;
         while ( abs(real(error1)) > tol && iter_count < max_iter)
             iter_count = iter_count + 1;
 
@@ -170,16 +169,24 @@ parfor k = 1 : length(frequencies)
             error("Fiber length is shorter than Lopt");
         end
 
-        F_m_AT(i)   = F_mo * (F_an + F_pn) * cos(Alpha);
+        L_m   = L_mo * L_mnc;
+        Alpha = asin(L_m_hight / L_m);
+        L_t   = L_mt - (L_mnc * L_mo) * cos(Alpha);
+        eps_t = L_t / L_ts - 1;
+        F_tn  = tendon_force_normalized(eps_t, TMM);
+
+        F_m_AT(i)   = F_mo * F_tn;
     end          
 
-    sig_out         = F_m_AT(2:time_len);
+    valid_range     = round(time_len * 0.1) : time_len;
+    sig_in          = L_mt_preset(valid_range);
+    sig_out         = F_m_AT(valid_range);
 
     Fs              = 1 / dt;
-    n_x             = length(sig_in(2:end));
+    n_x             = length(sig_in);
     f               = (0 : n_x - 1) * (Fs / n_x);
     
-    X_fft           = fft(sig_in(2:end));
+    X_fft           = fft(sig_in);
     F_fft           = fft(sig_out);
 
     [~, idx]        = min(abs(f - freq));
