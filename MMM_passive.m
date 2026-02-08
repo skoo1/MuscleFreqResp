@@ -40,7 +40,7 @@ L_mtn_target    = L_mtn_input;
 L_mt0               = L_ts + L_mo * cos(alphaOpt);
 
 low_L_m_AT          = 0.0;
-high_L_m_AT         = L_mtn_target * L_mt0;
+high_L_m_AT         = L_mtn_target * L_mt0 - 1e-5;
 error1              = 1000;
 
 while abs(real(error1)) > 1e-8
@@ -92,13 +92,14 @@ parfor k = 1 : length(frequencies)
     F_m_AT  = zeros(1, time_len);
 
     L_m_AT  = L_m_AT0;
+    V_m_AT  = 0; % parfor loop temporary variable initialization
+
     freq    = frequencies(k);
 
     amp               = Amp_input * L_mt0 * L_mtn_target;
     L_mt_preset       = L_mt0 * L_mtn_target + amp * sin(2 * pi * freq * time_array);
     V_mt_preset       = amp * 2 * pi * freq * cos(2 * pi * freq * time_array);
     A_mt              = -amp * (2 * pi * freq)^2 * sin(2 * pi * freq * time_array);
-    sig_in            = L_mt_preset;
 
     for i = 1 : time_len
         L_mt = L_mt_preset(i);
@@ -116,7 +117,7 @@ parfor k = 1 : length(frequencies)
             V_m_AT = (L_m_AT - L_m_AT_old)/dt;
             % muscleState = [V_m_AT, L_m_AT]; % these two should be found
 
-            mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+            mtInfo1 = calcMillard2012DampedEquilibriumMuscleInfo( ...
                 1e-10, [V_mt; L_mt], [V_m_AT; L_m_AT], ...
                 muscleArch, normMuscleCurves, modelConfig);
             
@@ -128,7 +129,7 @@ parfor k = 1 : length(frequencies)
             V_m_AT_perturb  = (L_m_AT_perturb - L_m_AT_old)/dt;
 
             mtInfo2         = calcMillard2012DampedEquilibriumMuscleInfo( ...
-                1e-10, [V_mt; L_mt], [V_m_AT_p; L_m_AT_p], ...
+                1e-10, [V_mt; L_mt], [V_m_AT_perturb; L_m_AT_perturb], ...
                 muscleArch, normMuscleCurves, modelConfig);
 
             F_m_AT2 = mtInfo2.muscleDynamicsInfo.fiberForceAlongTendon;
@@ -141,21 +142,23 @@ parfor k = 1 : length(frequencies)
             end
 
             L_m_AT  = L_m_AT - (error1 / J);
-            if (L_m_AT < 0) || (L_m_AT > L_mt0)
+            if (L_m_AT < 1e-6) || (L_m_AT > L_mt)
                 error('Newton solver failed: Solution %.4e is out of bounds [%.4e, %.4e].', ...
                     L_m_AT, low_L_m_AT, high_L_m_AT);
             end
         end
 
         mtInfo_Eq = calcMillard2012DampedEquilibriumMuscleInfo( ...
-            1e-10, [0; L_mt], L_m_AT, ...
+            1e-10, [V_mt; L_mt], [V_m_AT; L_m_AT], ...
             muscleArch, normMuscleCurves, modelConfig);
 
-        F_m_AT(i)   = mtInfo_Eq.muscleDynamicsInfo.fiberForceAlongTendon;
+        F_m_AT(i) = mtInfo_Eq.muscleDynamicsInfo.fiberForceAlongTendon;
     end          
 
-    sig_out   = F_m_AT;
-
+    valid_range = round(time_len * 0.1) : time_len;
+    sig_in      = L_mt_preset(valid_range);
+    sig_out     = F_m_AT(valid_range);
+    
     X_fft           = fft(sig_in); 
     F_fft           = fft(sig_out);
     
