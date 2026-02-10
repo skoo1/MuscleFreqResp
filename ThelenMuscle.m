@@ -8,7 +8,7 @@ classdef ThelenMuscle < MuscleModel
     end
 
     methods
-        function obj = ThelenMuscle(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping)
+        function obj = ThelenMuscle(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping, ~)
             % Call superclass constructor
             obj@MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping);
             obj.init_parameters();

@@ -15,9 +15,9 @@ classdef MillardMuscle < MuscleModel
     end
 
     methods
-        function obj = MillardMuscle(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping)
+        function obj = MillardMuscle(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping, type_str)
             obj@MuscleModel(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping);
-            obj.init_parameters();
+            obj.init_parameters(type_str);
         end
 
         function [L_mt, F_equil, Alpha] = initialize_static_given_Lm(obj, a, L_m)
@@ -243,14 +243,14 @@ classdef MillardMuscle < MuscleModel
     end
     
     methods (Access = private)
-        function init_parameters(obj)
+        function init_parameters(obj, type_str)
             % Initialize using the provided init_MMM logic
             [obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig, obj.MMM] = ...
-                obj.init_MMM();
+                obj.init_MMM(type_str);
         end
 
         function [muscleArch, normMuscleCurves, modelConfig, MMM] ...
-                = init_MMM(obj)
+                = init_MMM(obj, type_str)
 
             muscleName = obj.MuscleName;
             muscleAbbr = obj.MuscleName;
@@ -306,9 +306,9 @@ classdef MillardMuscle < MuscleModel
 
             % Model Configuration (modelConfig)
             modelConfig = struct();
-            modelConfig.useElasticTendon    = 1;
-            modelConfig.useFiberDamping     = 0;  
-            modelConfig.damping             = 0.1;
+            modelConfig.useElasticTendon    = 1; % default "Classic" setting
+            modelConfig.useFiberDamping     = 0; % default "Classic" setting
+            modelConfig.damping             = 0.0; % default "Classic" setting
             modelConfig.minActivation       = 1.49012e-08;
             modelConfig.iterMax             = 10000;
             modelConfig.tol                 = 1e-10;
@@ -317,6 +317,19 @@ classdef MillardMuscle < MuscleModel
             MMM = struct();
             MMM.Tau_a = 0.01;
             MMM.Tau_d = 0.04;
+
+            if strcmpi(type_str, "DEq")
+                % Millard Damped Equilibrium Model
+                modelConfig.useElasticTendon    = 1;
+                modelConfig.useFiberDamping     = 1;
+                modelConfig.damping             = 0.1;
+            end
+            if strcmpi(type_str, "Rigid")
+                % Millard Rigid Tendon Model
+                modelConfig.useElasticTendon    = 0;
+                modelConfig.useFiberDamping     = 1;
+                modelConfig.damping             = 0.1;
+            end
         end
     end
 end

@@ -24,11 +24,23 @@ addpath('./MMM/src/');
 
 % Millard Muscle Instantiation
 % MillardMuscle(Muscle_name, F_iso, L_m_opt, L_t_slack, Alpha_opt, Mass, Damping)
-millard = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0);
+millard_Classic = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0, "Classic");
 
 % Millard Muscle Tests
-results_millard_active  = run_active_test(millard);
-results_millard_passive = run_passive_test(millard);
+results_millard_Classic_active  = run_active_test(millard_Classic);
+results_millard_Classic_passive = run_passive_test(millard_Classic);
+
+millard_DEq = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0, "DEq");
+
+% Millard Muscle Tests
+results_millard_DEq_active  = run_active_test(millard_DEq);
+results_millard_DEq_passive = run_passive_test(millard_DEq);
+
+millard_Rigid = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0, "Rigid");
+
+% Millard Muscle Tests
+results_millard_Rigid_active  = run_active_test(millard_Rigid);
+results_millard_Rigid_passive = run_passive_test(millard_Rigid);
 
 
 %% Results comparison
@@ -37,7 +49,9 @@ figure('Name', 'Model Comparison', 'Color', 'w');
 % Magnitude Plot
 subplot(2,1,1);
 semilogx(results_thelen_active{1}, 20*log10(results_thelen_active{2}), 'r-', 'LineWidth', 1.5); hold on;
-semilogx(results_millard_active{1}, 20*log10(results_millard_active{2}), 'b--', 'LineWidth', 1.5);
+semilogx(results_millard_Classic_active{1}, 20*log10(results_millard_Classic_active{2}), 'g-', 'LineWidth', 1.5);
+semilogx(results_millard_DEq_active{1}, 20*log10(results_millard_DEq_active{2}), 'b-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_active{1}, 20*log10(results_millard_Rigid_active{2}), 'y-', 'LineWidth', 1.5);
 title('Active Response: Magnitude');
 xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
 legend('Thelen', 'Millard'); grid on; xlim([0.1 100]); ylim([10 100]);
@@ -45,7 +59,10 @@ legend('Thelen', 'Millard'); grid on; xlim([0.1 100]); ylim([10 100]);
 % Phase Plot
 subplot(2,1,2);
 semilogx(results_thelen_active{1}, results_thelen_active{3}, 'r-', 'LineWidth', 1.5); hold on;
-semilogx(results_millard_active{1}, results_millard_active{3}, 'b--', 'LineWidth', 1.5);
+semilogx(results_millard_Classic_active{1}, results_millard_Classic_active{3}, 'g-', 'LineWidth', 1.5);
+semilogx(results_millard_DEq_active{1}, results_millard_DEq_active{3}, 'b-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_active{1}, results_millard_Rigid_active{3}, 'y-', 'LineWidth', 1.5);
+
 title('Active Response: Phase');
 xlabel('Frequency (Hz)'); ylabel('Phase (deg)');
 grid on; xlim([0.1 100]); ylim([-180 10]);
@@ -54,7 +71,9 @@ figure('Name', 'Model Comparison', 'Color', 'w');
 % Magnitude Plot
 subplot(2,1,1);
 semilogx(results_thelen_passive{1}, 20*log10(results_thelen_passive{2}), 'r-', 'LineWidth', 1.5); hold on;
-semilogx(results_millard_passive{1}, 20*log10(results_millard_passive{2}), 'b--', 'LineWidth', 1.5);
+semilogx(results_millard_Classic_passive{1}, 20*log10(results_millard_Classic_passive{2}), 'g-', 'LineWidth', 1.5);
+semilogx(results_millard_DEq_passive{1}, 20*log10(results_millard_DEq_passive{2}), 'b-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_passive{1}, 20*log10(results_millard_Rigid_passive{2}), 'y-', 'LineWidth', 1.5);
 title('Passive Response: Magnitude');
 xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
 legend('Thelen', 'Millard'); grid on; xlim([0.1 100]); ylim([10 100]);
@@ -62,7 +81,9 @@ legend('Thelen', 'Millard'); grid on; xlim([0.1 100]); ylim([10 100]);
 % Phase Plot
 subplot(2,1,2);
 semilogx(results_thelen_passive{1}, results_thelen_passive{3}, 'r-', 'LineWidth', 1.5); hold on;
-semilogx(results_millard_passive{1}, results_millard_passive{3}, 'b--', 'LineWidth', 1.5);
+semilogx(results_millard_Classic_passive{1}, results_millard_Classic_passive{3}, 'g-', 'LineWidth', 1.5);
+semilogx(results_millard_DEq_passive{1}, results_millard_DEq_passive{3}, 'b-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_passive{1}, results_millard_Rigid_passive{3}, 'y-', 'LineWidth', 1.5);
 title('Passive Response: Phase');
 xlabel('Frequency (Hz)'); ylabel('Phase (deg)');
 grid on; xlim([0.1 100]); ylim([-180 10]);

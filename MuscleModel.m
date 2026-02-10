@@ -8,6 +8,7 @@ classdef (Abstract) MuscleModel < handle
 
     properties
         MuscleName
+        MuscleType  % Millard Classic/DEq/Rigid
         F_mo        % Max Isometric Force (N)
         L_mo        % Optimal Fiber Length (m)
         L_ts        % Tendon Slack Length (m)
@@ -28,8 +29,9 @@ classdef (Abstract) MuscleModel < handle
     end
 
     methods
-        function obj = MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping)
+        function obj = MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping, type_str)
             obj.MuscleName = name;
+            obj.MuscleType = type_str;
             obj.F_mo = F_mo;
             obj.L_mo = L_mo;
             obj.L_ts = L_ts;
