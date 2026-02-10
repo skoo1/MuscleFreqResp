@@ -121,11 +121,11 @@ parfor k = 1 : length(frequencies)
             mtInfo1 = calcMillard2012DampedEquilibriumMuscleInfo( ...
                 0, [V_mt; L_mt], [V_m_AT; L_m_AT], ...
                 muscleArch, normMuscleCurves, modelConfig);
-            
+
             F_m_AT1 = mtInfo1.muscleDynamicsInfo.fiberForceAlongTendon;
             F_t1    = mtInfo1.muscleDynamicsInfo.tendonForce;
             error1  = F_t1 - F_m_AT1;        % error for force equilbrium (muscle, tendon)
-            
+
             L_m_AT_perturb  = L_m_AT + delta;
             V_m_AT_perturb  = (L_m_AT_perturb - L_m_AT_old)/dt;
 
@@ -160,10 +160,10 @@ parfor k = 1 : length(frequencies)
     valid_range = round(time_len * 0.1) : time_len;
     sig_in      = L_mt_preset(valid_range);
     sig_out     = F_m_AT(valid_range);
-    
+
     X_fft           = fft(sig_in); 
     F_fft           = fft(sig_out);
-    
+
     Fs              = 1 / dt;
     n_x             = length(sig_in);
     f               = (0 : n_x - 1) * (Fs / n_x);

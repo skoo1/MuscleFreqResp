@@ -27,8 +27,8 @@ alphaOpt        = 0.4363;       % (rad)
 V_mmax_norm     = 10;
 
 % External dynamics parameters
-mass = Mass_input;
-damp = Damping_input;
+mass_ext = Mass_input;
+damp_ext = Damping_input;
 
 % Operating point
 L_mn_target = L_mn_input; 
@@ -57,8 +57,9 @@ mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
 % disp(mtInfo.initialization.err)
 
 F_m_AT  = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-F_mn_AT = F_m_AT / muscleArch.fiso;
-L_tn = calcBezierYFcnXDerivative(F_mn_AT, normMuscleCurves.tendonInverseCurve, 0);
+F_t     = F_m_AT;
+F_tn    = F_t / F_mo;
+L_tn = calcBezierYFcnXDerivative(F_tn, normMuscleCurves.tendonInverseCurve, 0);
 L_t  = L_tn * muscleArch.tendonSlackLength;
 
 pathState = [0; L_m_AT0 + L_t];
@@ -84,7 +85,7 @@ steps      = NumFreqSamples;
 freqlb      = FreqLow_input;
 freqhb      = FreqHigh_input;
 frequencies = logspace(log10(freqlb), log10(freqhb), steps);                                              
-freq_len    = length(frequencies);          
+freq_len    = length(frequencies);
 
 % Storage initialization
 visual_result       = cell(1, 4);
@@ -131,7 +132,7 @@ parfor k = 1 : length(frequencies)
         V_m_AT          = mtInfo.state.derivative;
         L_m_AT          = L_m_AT + V_m_AT * dt;
 
-        A_mt    = (F_ext_equil - F_t - damp * V_mt) / mass;
+        A_mt    = (F_ext_equil - F_t - damp_ext * V_mt) / mass_ext;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
     end
@@ -168,11 +169,11 @@ visual_result{4} = exc;
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: MMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-if exist('mass','var')
-    if abs(mass - 3e8) < 1e-6     % 300000000 kg → isometric
+if exist('mass_ext','var')
+    if abs(mass_ext - 3e8) < 1e-6     % 300000000 kg → isometric
         mass_label = 'isometric';
     else
-        mass_label = [num2str(mass) 'kg'];
+        mass_label = [num2str(mass_ext) 'kg'];
     end
 else
     mass_label = 'unknownMass';
