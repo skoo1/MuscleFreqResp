@@ -9,7 +9,7 @@ fprintf('--- Testing Thelen Model ---\n');
 
 % Thelen Muscle Instantiation
 % ThelenMuscle(Muscle_name, F_iso, L_m_opt, L_t_slack, Alpha_opt, Mass, Damping)
-thelen = ThelenMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0);
+thelen = ThelenMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 1, 0.0, "None");
 
 % Thelen Muscle Tests
 results_thelen_active  = run_active_test(thelen);

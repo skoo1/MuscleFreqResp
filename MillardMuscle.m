@@ -16,7 +16,7 @@ classdef MillardMuscle < MuscleModel
 
     methods
         function obj = MillardMuscle(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping, type_str)
-            obj@MuscleModel(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping);
+            obj@MuscleModel(name, f_mo, l_mo, l_ts, alphaOpt, mass, damping, type_str);
             obj.init_parameters(type_str);
         end
 
