@@ -26,8 +26,8 @@ alphaOpt   = 0.4363;    % Pennation angle at optimal muscle length (rad)
 V_mmax     = 10 * L_mo;
 
 % External dynamics parameters
-mass          = Mass_input;
-damp          = Damping_input;
+mass_ext      = Mass_input;
+damping_ext   = Damping_input;
 
 % Operating point
 L_mtn_target  = L_mtn_input;
@@ -210,11 +210,11 @@ visual_result{4} = exc;
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-if exist('mass','var')
-    if abs(mass - 3e9) < 1e-6     % 3e9 kg → static
+if exist('mass_ext','var')
+    if abs(mass_ext - 3e9) < 1e-6     % 3e9 kg → static
         mass_label = 'isometric';
     else
-        mass_label = [num2str(mass) 'kg'];
+        mass_label = [num2str(mass_ext) 'kg'];
     end
 else
     mass_label = 'unknownMass';

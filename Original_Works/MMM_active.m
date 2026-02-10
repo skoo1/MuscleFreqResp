@@ -28,7 +28,7 @@ V_mmax_norm     = 10;
 
 % External dynamics parameters
 mass_ext = Mass_input;
-damp_ext = Damping_input;
+damping_ext = Damping_input;
 
 % Operating point
 L_mn_target = L_mn_input; 
@@ -132,7 +132,7 @@ parfor k = 1 : length(frequencies)
         V_m_AT          = mtInfo.state.derivative;
         L_m_AT          = L_m_AT + V_m_AT * dt;
 
-        A_mt    = (F_ext_equil - F_t - damp_ext * V_mt) / mass_ext;
+        A_mt    = (F_ext_equil - F_t - damping_ext * V_mt) / mass_ext;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
     end

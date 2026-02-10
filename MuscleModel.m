@@ -29,15 +29,15 @@ classdef (Abstract) MuscleModel < handle
     end
 
     methods
-        function obj = MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass, damping, type_str)
+        function obj = MuscleModel(name, F_mo, L_mo, L_ts, alphaOpt, mass_not_used, damping_not_used, type_str)
             obj.MuscleName = name;
             obj.MuscleType = type_str;
             obj.F_mo = F_mo;
             obj.L_mo = L_mo;
             obj.L_ts = L_ts;
             obj.AlphaOpt = alphaOpt;
-            obj.Mass = mass;
-            obj.Damping = damping;
+            obj.Mass = mass_not_used; % Not used in this study
+            obj.Damping = damping_not_used; % Not used in this study
             obj.V_m_max = 10 * L_mo; % according to literature
 
             % Default Initialization

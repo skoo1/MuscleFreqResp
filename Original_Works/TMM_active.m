@@ -26,8 +26,8 @@ alphaOpt   = 0.4363;
 V_mmax     = 10 * L_mo;
 
 % External dynamics parameters
-mass = Mass_input;
-damp = Damping_input;
+mass_ext = Mass_input;
+damping_ext = Damping_input;
 
 % Operating point
 L_mn_target = L_mn_input;
@@ -174,7 +174,7 @@ parfor k = 1 : length(frequencies)
         F_m     = F_t / cos(Alpha);
 
         % external equilibrium
-        A_mt    = (F_ext_equil - F_tn * F_mo - V_mt * damp) / mass;
+        A_mt    = (F_ext_equil - F_tn * F_mo - V_mt * damping_ext) / mass_ext;
         V_mt    = V_mt + A_mt * dt;
         L_mt    = L_mt + V_mt * dt;
 
@@ -213,11 +213,11 @@ visual_result{4} = exc;
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %
 
-if exist('mass','var')
-    if abs(mass - 3e8) < 1e-6     % 300000000 kg → isometric
+if exist('mass_ext','var')
+    if abs(mass_ext - 3e8) < 1e-6     % 300000000 kg → isometric
         mass_label = 'isometric';
     else
-        mass_label = [num2str(mass) 'kg'];
+        mass_label = [num2str(mass_ext) 'kg'];
     end
 else
     mass_label = 'unknownMass';

@@ -27,8 +27,8 @@ alphaOpt        = 0.4363;       % (rad)
 V_mmax_norm     = 10;
 
 % External dynamics parameters
-mass         = Mass_input;
-damp         = Damping_input;
+mass_ext     = Mass_input;
+damping_ext  = Damping_input;
 
 % Operating point
 L_mtn_target    = L_mtn_input;
