@@ -31,7 +31,7 @@ mass_ext = Mass_input;
 damping_ext = Damping_input;
 
 % Operating point
-L_mn_target = L_mn_input; 
+L_mn_target = L_mn_input;
 V_m_target  = V_m_input;
 u0          = U_input;
 
@@ -84,7 +84,7 @@ steps      = NumFreqSamples;
 % Frequency sampling parameters
 freqlb      = FreqLow_input;
 freqhb      = FreqHigh_input;
-frequencies = logspace(log10(freqlb), log10(freqhb), steps);                                              
+frequencies = logspace(log10(freqlb), log10(freqhb), steps);
 freq_len    = length(frequencies);
 
 % Storage initialization
@@ -94,7 +94,7 @@ sin_f               = zeros(1, length(frequencies));
 mag                 = zeros(1, length(frequencies));
 exc                 = zeros(1, length(frequencies));
 
-parfor k = 1 : length(frequencies)       
+parfor k = 1 : length(frequencies)
     tic;
     freq = frequencies(k);
 
@@ -102,16 +102,16 @@ parfor k = 1 : length(frequencies)
 
     amp  = Amp_input;
     u    = sinwave(freq, time_array, u0, u0, amp);
-    u(u < 0) = 0; 
+    u(u < 0) = 0;
     u(u > 1) = 1;
 
     a    = ones(1, length(u)) * u0;
     a(1) = u(1);
-    
+
     L_mt      = L_mt0;
     V_mt      = 0;
     L_m_AT    = L_m_AT0;
-    
+
     % Calculate the force measured at the sensor or F_m_AT(i)
     % as a response to the input signal u(i)
     for i = 1 : time_len
@@ -125,7 +125,7 @@ parfor k = 1 : length(frequencies)
         mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
                                 a(i), pathState, muscleState, ...
                                 muscleArch, normMuscleCurves, modelConfig);
-        
+
         F_t             = mtInfo.muscleDynamicsInfo.tendonForce;
         F_m_AT(i)       = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
 
@@ -140,10 +140,10 @@ parfor k = 1 : length(frequencies)
     valid_range = round(time_len * 0.1) : time_len-1;
     sig_in  = u(valid_range);
     sig_out = F_m_AT(valid_range);
-    
-    U_fft           = fft(sig_in); 
+
+    U_fft           = fft(sig_in);
     F_fft           = fft(sig_out);
-    
+
     Fs              = 1 / dt;
     n_x             = length(sig_in);
     f               = (0 : n_x - 1) * (Fs / n_x);
@@ -235,17 +235,17 @@ function Tau = get_Tau(a, u, param)
     else
         Tau = param.Tau_d / (0.5 + 1.5 * a);
     end
-end 
+end
 
 
 function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName, muscleAbbr, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm)
 
     % 1. Default Parameters & Constants
-    maximumPennationAngle = 89 * (pi/180); 
-    
-    % If this is greater than 0 this value will be used to make 
+    maximumPennationAngle = 89 * (pi/180);
+
+    % If this is greater than 0 this value will be used to make
     % the tendon-force-length curve. Otherwise the default of 0.049 is taken.
-    tendonStrainAtOneNormForce = 0.033; 
+    tendonStrainAtOneNormForce = 0.033;
     flag_plotNormMuscleCurves = 0;
     flag_updateCurves = 1;
 
@@ -270,13 +270,13 @@ function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName,
 
     % 4. Kinematics Limit Calculation
     minimumActiveFiberNormalizedLength = normMuscleCurves.activeForceLengthCurve.xEnd(1);
-    
+
     minFiberKinematics = calcFixedWidthPennatedFiberMinimumLength(...
                 minimumActiveFiberNormalizedLength,...
                 maximumPennationAngle,...
                 muscleArch.optimalFiberLength,...
                 muscleArch.pennationAngle);
-    
+
     muscleArch.minimumFiberLength = ...
                minFiberKinematics.minimumFiberLength;
     muscleArch.minimumFiberLengthAlongTendon =...
@@ -287,7 +287,7 @@ function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName,
     % 5. Model Configuration (modelConfig)
     modelConfig = struct();
     modelConfig.useElasticTendon    = 1;
-    modelConfig.useFiberDamping     = 0;  
+    modelConfig.useFiberDamping     = 0;
     modelConfig.damping             = 0.1;
     modelConfig.minActivation       = 1e-10;
     modelConfig.iterMax             = 10000;
