@@ -116,39 +116,102 @@ classdef MillardMuscle < MuscleModel
             da_dt = obj.getActivationRate(u, obj.a);
             a = obj.a + dt * da_dt;
 
-            % Calculate Dynamics using Millard API
-            L_m    = obj.L_m;
-            Alpha = obj.calc_pennation_angle(L_m);
-            L_m_AT = L_m * cos(Alpha);
+            % Initial setup
+            L_m_height = obj.L_mo * sin(obj.AlphaOpt);
+
+            % Previous step's projected fiber length (for velocity calculation)
+            Alpha_prev  = obj.calc_pennation_angle(obj.L_m);
+            L_m_AT_prev = obj.L_m * cos(Alpha_prev);
+
+            % Initial guess for current step (start from previous value)
+            L_m_AT_curr = L_m_AT_prev;
+
+            % Solver parameters
+            max_iter = 50;
+            tol      = 1e-8;
+            delta    = 1e-7; % perturbation step
+            err      = 1.0;
+            iter     = 0;
+
+            % Path State (L_mt, V_mt are from previous external step)
             pathState = [obj.V_mt; obj.L_mt];
-            muscleState = L_m_AT; % Scalar input means compute derivative
 
-            mtInfo = calcMillard2012DampedEquilibriumMuscleInfo(...
-                a, pathState, muscleState, ...
-                obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
+            while (abs(real(err)) > tol && iter < max_iter)
+                iter = iter + 1;
+                
+                % --- Calculate Error at Current Guess ---
+                % Implicit Velocity: V = (L_curr - L_prev) / dt
+                V_m_AT_curr = (L_m_AT_curr - L_m_AT_prev) / dt;
+                
+                % [Velocity; Length] vector forces initialization mode (pure evaluation)
+                muscleState_c = [V_m_AT_curr; L_m_AT_curr]; 
+                
+                mtInfo_c = calcMillard2012DampedEquilibriumMuscleInfo(...
+                    a, pathState, muscleState_c, ...
+                    obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
+                
+                F_t_c      = mtInfo_c.muscleDynamicsInfo.tendonForce;
+                F_m_AT_c   = mtInfo_c.muscleDynamicsInfo.fiberForceAlongTendon;
+                err        = F_t_c - F_m_AT_c;
 
-            F_t = mtInfo.muscleDynamicsInfo.tendonForce;
+                % --- Calculate Jacobian (Perturbation) ---
+                L_m_AT_p = L_m_AT_curr + delta;
+                V_m_AT_p = (L_m_AT_p - L_m_AT_prev) / dt; % Velocity also changes
+                
+                muscleState_p = [V_m_AT_p; L_m_AT_p];
+                
+                mtInfo_p = calcMillard2012DampedEquilibriumMuscleInfo(...
+                    a, pathState, muscleState_p, ...
+                    obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
+                
+                F_t_p      = mtInfo_p.muscleDynamicsInfo.tendonForce;
+                F_m_AT_p   = mtInfo_p.muscleDynamicsInfo.fiberForceAlongTendon;
+                err_p      = F_t_p - F_m_AT_p;
+                
+                J = (err_p - err) / delta;
+                
+                if abs(J) < 1e-14, J = 1e-14; end % Avoid singularity
+                
+                % Newton Step
+                step = err / J;
+                L_m_AT_curr = L_m_AT_curr - step;
+                
+                % Bounds Check (Optional but safe)
+                if L_m_AT_curr < 1e-6, L_m_AT_curr = 1e-6; end
+                if L_m_AT_curr > obj.L_mt, L_m_AT_curr = obj.L_mt - 1e-6; end
+            end
 
             % Update muscle length
-            V_m_AT = mtInfo.state.derivative;
-            L_m_AT = L_m_AT + V_m_AT * dt;
-            L_m_height = obj.L_mo * sin(obj.AlphaOpt);
-            L_m = sqrt(L_m_AT^2 + L_m_height^2);
+            L_m_AT_final = L_m_AT_curr;
+            V_m_AT_final = (L_m_AT_final - L_m_AT_prev) / dt;
+
+            % Recalculate full info at converged state
+            muscleState_final = [V_m_AT_final; L_m_AT_final];
+            mtInfo_final = calcMillard2012DampedEquilibriumMuscleInfo(...
+                    a, pathState, muscleState_final, ...
+                    obj.MuscleArch, obj.NormMuscleCurves, obj.ModelConfig);
+            
+            F_t = mtInfo_final.muscleDynamicsInfo.tendonForce;
+            
+            % Calculate geometric variables
+            L_m_final = sqrt(L_m_AT_final^2 + L_m_height^2);
+            % V_m_final is more accurately calculated from L_m difference or using kinematic relation
+            V_m_final = (L_m_final - obj.L_m) / dt;
 
             % Equilibrium with external forces
             A_mt    = (F_ext_equil - F_t - damping_ext * obj.V_mt) / mass_ext;
             V_mt    = obj.V_mt + A_mt * dt;
             L_mt    = obj.L_mt + V_mt * dt;
 
-            obj.MTInfo = mtInfo;
+            obj.MTInfo = mtInfo_final;
             obj.a    = a;
-            obj.L_m  = L_m;
-            obj.V_m  = mtInfo.fiberVelocityInfo.fiberVelocity;
+            obj.L_m  = L_m_final;
+            obj.V_m  = V_m_final; 
             obj.L_mt = L_mt;
             obj.V_mt = V_mt;
-            obj.L_mn = mtInfo.muscleLengthInfo.normFiberLength;
-            obj.F_t  = mtInfo.muscleDynamicsInfo.tendonForce;
-            obj.F_m  = mtInfo.muscleDynamicsInfo.fiberForce;
+            obj.L_mn = mtInfo_final.muscleLengthInfo.normFiberLength;
+            obj.F_t  = F_t;
+            obj.F_m  = mtInfo_final.muscleDynamicsInfo.fiberForce;
         end
 
         function F_t = updateDynamicsQuasiStatic(obj, dt, u, L_mt, V_mt)
