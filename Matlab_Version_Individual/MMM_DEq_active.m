@@ -2,7 +2,7 @@
 % February 5, 2026
 
 clc; clear;
-addpath('.\MMM\src\');
+addpath('..\MMM\src\');
 
 % Sim configuration
 % L_mtn_input  = 1.05; % for passive test
@@ -97,14 +97,14 @@ parfor k = 1 : length(frequencies)
             a(i) = a(i-1) + dt * da_dt;
         end
 
-        pathState       = [V_mt; L_mt];
-        muscleState     = L_m_AT;
-        mtInfo          = calcMillard2012DampedEquilibriumMuscleInfo(...
+        pathState        = [V_mt; L_mt];
+        muscleState      = L_m_AT;
+        mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
                                 a(i), pathState, muscleState, ...
                                 muscleArch, normMuscleCurves, modelConfig);
         
         F_t             = mtInfo.muscleDynamicsInfo.tendonForce;
-        F_m_AT(i)       = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+        F_m_AT(i)        = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
 
         V_m_AT          = mtInfo.state.derivative;
         L_m_AT          = L_m_AT + V_m_AT * dt;
@@ -161,7 +161,7 @@ if ~exist(saveFolder, 'dir')
     mkdir(saveFolder);
 end
 
-fileName = [num2str(L_mn_target) '_' num2str(u0) '_' muscleName '_YB_wod_aF_Rigid_' mass_label '.mat'];
+fileName = [num2str(L_mn_target) '_' num2str(u0) '_' muscleName '_YB_wod_aF_DEq_' mass_label '.mat'];
 fullPath = fullfile(saveFolder, fileName);
 savingdata_freq = visual_result;
 save(fullPath, 'savingdata_freq');
@@ -276,7 +276,7 @@ function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName,
 
     % 5. Model Configuration (modelConfig)
     modelConfig = struct();
-    modelConfig.useElasticTendon    = 0;
+    modelConfig.useElasticTendon    = 1;
     modelConfig.useFiberDamping     = 1;  
     modelConfig.damping             = 0.1;
     modelConfig.minActivation       = 1e-10;

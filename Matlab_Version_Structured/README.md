@@ -4,7 +4,6 @@ This repository contains MATLAB implementations of two numerical Hill-type muscl
 
 The repository includes:
 - MATLAB code, tested on **Windows 11** using **MATLAB R2025b**
-- C++ code, tested on **Windows 11** using **Visual Studio 2022**
 - Implementations of the Thelen (2003) 
 - Frequency response of Thelen (2003) and Millard (2012) muscles for active and passive tests in our paper (It will be noted here when it is published)
 - Scripts for generating Bode plots for both active and passive state analyses
@@ -14,27 +13,20 @@ The repository includes:
 # Installation & Usage
 
 ### 1. Prerequisite (Crucial Step)
-To use the Matlab code, you must include the original Matlab implementation code of the Millard Muscle Model.
+To use the Millard Muscle Model, you must include the original implementation code.
 
 1. Create a folder named **`MMM`** in the root directory of this repository.
 2. Download the code from the official [Millard2012EquilibriumMuscleMatlabPort](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) repository.
 3. Place all the downloaded files into the `MMM` folder.
 * It is already included in this repository for your convenience.
 
-To use the C++ code, you must include the OpenSim-Core library.
-1. Download the source code from the official [OpenSim-Core] (https://github.com/opensim-org/opensim-core) repository.
-2. Compile and install the OpenSim-Core.
+> **Note:** Without the `MMM` folder and its contents, the Millard model scripts will not function.
 
 ### 2. Running the Scripts
-Matlab Code - Simply download this repository and run the .m files in MATLAB. No complex installation is required.
+Simply download this repository and run the .m files in MATLAB. No complex installation is required.
 
 - Open MATLAB and navigate to the repository folder.
 - Run the main.m which runs active and passive tests on the muscles. 
-
-C++ Code - Compile it along with OpenSim-Core and run the muscle_app.exe.
-
-- Modify CMakeLists.txt if necessary.
-- The code should be compiled and work on all OS if OpenSim-Core has been compiled. 
 
 ---
 

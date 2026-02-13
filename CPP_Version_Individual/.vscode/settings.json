@@ -1,0 +1,9 @@
+{
+    "cmake.configureArgs": [
+        "-DOpenSim_DIR=D:/opensim-core/cmake"
+    ],
+    "cmake.generator": "Visual Studio 17 2022",
+    "cmake.platform": "x64",
+    "cmake.toolset": "v143",
+    "cmake.sourceDirectory": "${workspaceFolder}"
+}

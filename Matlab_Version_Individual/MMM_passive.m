@@ -2,7 +2,7 @@
 % February 5, 2026
 
 clc; clear;
-addpath('.\MMM\src\');
+addpath('..\MMM\src\');
 
 % Sim configuration
 L_mtn_input    = 1.05;
