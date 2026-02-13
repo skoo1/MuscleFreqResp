@@ -120,21 +120,66 @@ parfor k = 1 : length(frequencies)
             a(i) = a(i-1) + dt * da_dt;
         end
 
-        pathState        = [V_mt; L_mt];
-        muscleState      = L_m_AT;
-        mtInfo           = calcMillard2012DampedEquilibriumMuscleInfo(...
-                                a(i), pathState, muscleState, ...
-                                muscleArch, normMuscleCurves, modelConfig);
+        % parfor temporary variable initialization
+        F_t_c = 0;
 
-        F_t             = mtInfo.muscleDynamicsInfo.tendonForce;
-        F_m_AT(i)       = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+        % -----------------------------------------------------------------
+        % Newton-Raphson Solver Start
+        % -----------------------------------------------------------------
+        L_m_AT_c   = L_m_AT;  % Initial guess: value from previous step
+        max_iter   = 50;
+        iter_count = 0;
+        error_c    = 1.0;
+        delta      = 1e-7;  % Perturbation step size
+        tol        = 1e-8;  % Tolerance
 
-        V_m_AT          = mtInfo.state.derivative;
-        L_m_AT          = L_m_AT + V_m_AT * dt;
+        while ( abs(real(error_c)) > tol && iter_count < max_iter)
+            pathState        = [V_mt; L_mt];
 
-        A_mt    = (F_ext_equil - F_t - damping_ext * V_mt) / mass_ext;
-        V_mt    = V_mt + A_mt * dt;
-        L_mt    = L_mt + V_mt * dt;
+            V_m_AT_c         = (L_m_AT_c - L_m_AT) / dt;
+            muscleState_c    = [V_m_AT_c; L_m_AT_c];
+
+            mtInfo_c         = calcMillard2012DampedEquilibriumMuscleInfo(...
+                                    a(i), pathState, muscleState_c, ...
+                                    muscleArch, normMuscleCurves, modelConfig);
+            F_t_c            = mtInfo_c.muscleDynamicsInfo.tendonForce;
+            F_m_AT_c         = mtInfo_c.muscleDynamicsInfo.fiberForceAlongTendon;
+            % Error = Tendon Force - Projected Fiber Force
+            error_c          = F_t_c - F_m_AT_c;
+
+            L_m_AT_p         = L_m_AT_c + delta;
+            V_m_AT_p         = (L_m_AT_p - L_m_AT) / dt; 
+            
+            muscleState_p    = [V_m_AT_p; L_m_AT_p];
+            mtInfo_p         = calcMillard2012DampedEquilibriumMuscleInfo(...
+                                    a(i), pathState, muscleState_p, ...
+                                    muscleArch, normMuscleCurves, modelConfig);
+            F_t_p            = mtInfo_p.muscleDynamicsInfo.tendonForce;
+            F_m_AT_p         = mtInfo_p.muscleDynamicsInfo.fiberForceAlongTendon;
+            error_p          = F_t_p - F_m_AT_p;
+
+            % Newton-Raphson Update
+            J = (error_p - error_c) / delta; % Jacobian
+            
+            if abs(J) < 1e-14
+                J = 1e-14; % Prevent division by zero
+            end
+            
+            step = error_c / J;
+            L_m_AT_c = L_m_AT_c - step;
+            
+            % Bounds check (Optional but recommended)
+            if L_m_AT_c < 1e-6, L_m_AT_c = 1e-6; end
+            if L_m_AT_c > L_mt, L_m_AT_c = L_mt - 1e-6; end
+        end
+
+        L_m_AT    = L_m_AT_c;
+        F_t       = F_t_c;
+        F_m_AT(i) = F_t;
+
+        A_mt      = (F_ext_equil - F_t - V_mt * damping_ext) / mass_ext;
+        V_mt      = V_mt + A_mt * dt;
+        L_mt      = L_mt + V_mt * dt;
     end
 
     valid_range = round(time_len * 0.1) : time_len-1;
