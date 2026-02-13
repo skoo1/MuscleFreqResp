@@ -49,19 +49,19 @@ Reference:
 
 ## Thelen Muscle Model Active Test
 #### >> TMM_active
-<img src="./images/TMM_active_result.png" alt="Thelen Active Result" width="400" />
+<img src="./images/TMM_active_CPP_result.png" alt="Thelen Active Result" width="400" />
 
 ## Thelen Muscle Model Passive Test
 #### >> TMM_passive
-<img src="./images/TMM_passive_result.png" alt="Thelen Passive Result" width="400" />
+<img src="./images/TMM_passive_CPP_result.png" alt="Thelen Passive Result" width="400" />
 
 ## Millard Muscle Model Active Test
 #### >> MMM_active
-<img src="./images/MMM_active_result.png" alt="Millard Active Result" width="400" />
+<img src="./images/MMM_active_CPP_result.png" alt="Millard Active Result" width="400" />
 
 ## Millard Muscle Model Passive Test
 #### >> MMM_passive
-<img src="./images/MMM_passive_result.png" alt="Millard Passive Result" width="400" />
+<img src="./images/MMM_passive_CPP_result.png" alt="Millard Passive Result" width="400" />
 
 ---
 
