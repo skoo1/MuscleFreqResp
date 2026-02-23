@@ -1,44 +1,240 @@
 % main.m - Run Analysis for All Simulations
 clear; clc; close all;
 
-% 공통 설정
 L_mn_target = 1.0; 
 
 %% 1. MMM Active Simulation
-% 폴더명은 C++ 코드에서 생성한 이름과 일치해야 합니다.
 try
-    csv_folder  = './MMM_Active_results_csv/';
-    save_folder = './MMM_results/';
+    csv_folder  = './MMM_Classic_Active_csv_0.600000/';
+    save_folder = './MMM_Classic_Active_result_0.600000/';
     u0          = 0.5;
-    analyze_simulation_results(csv_folder, save_folder, 'MMM', 'Active', u0, L_mn_target);
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Active', u0, L_mn_target);
 catch
-    fprintf('MMM_Active Error!\n')
+    fprintf('MMM_Classic_Active_0.600000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Classic_Active_csv_0.800000/';
+    save_folder = './MMM_Classic_Active_result_0.800000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Classic_Active_0.800000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Classic_Active_csv_1.000000/';
+    save_folder = './MMM_Classic_Active_result_1.000000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Classic_Active_1.000000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Classic_Active_csv_1.200000/';
+    save_folder = './MMM_Classic_Active_result_1.200000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Classic_Active_1.200000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Classic_Active_csv_1.400000/';
+    save_folder = './MMM_Classic_Active_result_1.400000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Classic_Active_1.400000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Active_csv_0.600000/';
+    save_folder = './MMM_DEq_Active_result_0.600000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Active_0.600000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Active_csv_0.800000/';
+    save_folder = './MMM_DEq_Active_result_0.800000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Active_0.800000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Active_csv_1.000000/';
+    save_folder = './MMM_DEq_Active_result_1.000000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Active_1.000000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Active_csv_1.200000/';
+    save_folder = './MMM_DEq_Active_result_1.200000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Active_1.200000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Active_csv_1.400000/';
+    save_folder = './MMM_DEq_Active_result_1.400000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Active_1.400000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Active_csv_0.600000/';
+    save_folder = './MMM_Rigid_Active_result_0.600000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Active_0.600000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Active_csv_0.800000/';
+    save_folder = './MMM_Rigid_Active_result_0.800000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Active_0.800000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Active_csv_1.000000/';
+    save_folder = './MMM_Rigid_Active_result_1.000000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Active_1.000000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Active_csv_1.200000/';
+    save_folder = './MMM_Rigid_Active_result_1.200000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Active_1.200000 Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Active_csv_1.400000/';
+    save_folder = './MMM_Rigid_Active_result_1.400000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Active', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Active_1.400000 Error!\n')
 end
 
 %% 2. MMM Passive Simulation
 try
-    csv_folder  = './MMM_Passive_results_csv/';
-    save_folder = './MMM_results/';
-    u0          = 0.0; % Passive는 u=0
-    analyze_simulation_results(csv_folder, save_folder, 'MMM', 'Passive', u0, L_mn_target);
+    csv_folder  = './MMM_Classic_Passive_csv/';
+    save_folder = './MMM_Classic_Passive_result/';
+    u0          = 0.0;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Classic', 'Passive', u0, L_mn_target);
 catch
-    fprintf('MMM_Passive Error!\n')
+    fprintf('MMM_Classic_Passive Error!\n')
 end
+
+try
+    csv_folder  = './MMM_DEq_Passive_csv/';
+    save_folder = './MMM_DEq_Passive_result/';
+    u0          = 0.0;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Passive', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Passive Error!\n')
+end
+
+try
+    csv_folder  = './MMM_Rigid_Passive_csv/';
+    save_folder = './MMM_Rigid_Passive_result/';
+    u0          = 0.0;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Passive', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Passive Error!\n')
+end
+
+try
+    csv_folder  = './MMM_DEq_Passive_csv/';
+    save_folder = './MMM_DEq_Passive_result/';
+    u0          = 0.0;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Passive', u0, L_mn_target);
+catch
+    fprintf('MMM_DEq_Passive Error!\n')
+end
+try
+    csv_folder  = './MMM_Rigid_Passive_csv/';
+    save_folder = './MMM_Rigid_Passive_result/';
+    u0          = 0.0;
+    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Passive', u0, L_mn_target);
+catch
+    fprintf('MMM_Rigid_Passive Error!\n')
+end
+
 
 %% 3. TMM Active Simulation
 try
-    csv_folder  = './TMM_Active_results_csv/';
-    save_folder = './TMM_results/';
+    csv_folder  = './TMM_Active_result_csv_0.600000/';
+    save_folder = './TMM_Active_result_0.600000/';
     u0          = 0.5;
     analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Active', u0, L_mn_target);
 catch
-    fprintf('TMM_Active Error!\n')
+    fprintf('TMM_Active_0.600000 Error!\n')
+end
+
+try
+    csv_folder  = './TMM_Active_result_csv_0.800000/';
+    save_folder = './TMM_Active_result_0.800000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Active', u0, L_mn_target);
+catch
+    fprintf('TMM_Active_0.800000 Error!\n')
+end
+
+try
+    csv_folder  = './TMM_Active_result_csv_1.000000/';
+    save_folder = './TMM_Active_result_1.000000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Active', u0, L_mn_target);
+catch
+    fprintf('TMM_Active_1.000000 Error!\n')
+end
+
+try
+    csv_folder  = './TMM_Active_result_csv_1.200000/';
+    save_folder = './TMM_Active_result_1.200000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Active', u0, L_mn_target);
+catch
+    fprintf('TMM_Active_1.200000 Error!\n')
+end
+
+try
+    csv_folder  = './TMM_Active_result_csv_1.400000/';
+    save_folder = './TMM_Active_result_1.400000/';
+    u0          = 0.5;
+    analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Active', u0, L_mn_target);
+catch
+    fprintf('TMM_Active_1.400000 Error!\n')
 end
 
 %% 4. TMM Passive Simulation
 try
-    csv_folder  = './TMM_Passive_results_csv/';
-    save_folder = './TMM_results/';
+    csv_folder  = './TMM_Passive_result_csv/';
+    save_folder = './TMM_Passive_result/';
     u0          = 0.0;
     analyze_simulation_results(csv_folder, save_folder, 'TMM', 'Passive', u0, L_mn_target);
 catch

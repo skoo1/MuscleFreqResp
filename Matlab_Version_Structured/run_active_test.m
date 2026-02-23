@@ -2,9 +2,9 @@
 % KAIST, Daejeon, South Korea
 % February 23, 2026
 
-function results = run_active_test(muscleModel)
+function results = run_active_test(muscleModel, L_mn_input)
     % Sim configuration
-    L_mn_input     = 1.0;
+    % L_mn_input     = 1.0;
     V_m_input      = 0.0;  % static condition
     V_mt_input     = 0.0;  % static condition
     U_input        = 0.5;

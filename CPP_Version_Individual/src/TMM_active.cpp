@@ -14,13 +14,13 @@
 // ---------------------------------------------------------------------------
 // This function performs a forward dynamics simulation of a muscle-tendon unit
 // attached to a mass, specifically testing the active force generation.
-int run_TMM_active() {
+int run_TMM_active(double L_mn_input) {
     std::cout << "Starting TMM Active Simulation..." << std::endl;
     try {
         // --- 1. Simulation Configuration ---
         // Basic parameters defining the simulation environment and muscle inputs.
 
-        double L_mn_input = 1.0;      // Target Normalized Muscle Length multiplier (at rest)
+        // double L_mn_input = 1.0;      // Target Normalized Muscle Length multiplier (at rest)
         double U_input = 0.5;         // Excitation Input (u): Constant activation level for active test
         double Amp_input = 0.01;      // Amplitude of input oscillation (if applicable)
         double Mass_input = 3e9;      // External Mass (kg): Very large mass simulates isometric conditions
@@ -114,10 +114,12 @@ int run_TMM_active() {
         // --- 5. Frequency Sweep Loop ---
         // Generate logarithmic frequency steps
         std::vector<double> frequencies = logspace(std::log10(FreqLow), std::log10(FreqHigh), NumFreqSamples);
-        std::filesystem::create_directories("TMM_Active_results_csv");
+
+        std::string dir_name = "TMM_Active_results_csv_" + std::to_string(L_mn_input);
+        std::filesystem::create_directories(dir_name);
 
         // Save frequency list for post-processing
-        std::ofstream freqFile("TMM_Active_results_csv/frequency_list.csv");
+        std::ofstream freqFile(dir_name + "/frequency_list.csv");
         if (freqFile.is_open()) {
             for (size_t k = 0; k < frequencies.size(); ++k) {
                 freqFile << k << "," << frequencies[k] << "\n";
@@ -128,7 +130,7 @@ int run_TMM_active() {
         // Loop through each frequency
         for (int k = 0; k < NumFreqSamples; ++k) {
             double freq = frequencies[k];
-            std::ofstream outFile("TMM_Active_results_csv/freq_res_" + std::to_string(k) + ".csv");
+            std::ofstream outFile(dir_name + "/freq_res_" + std::to_string(k) + ".csv");
             outFile << std::setprecision(16);
             outFile << "time, u, F_m_AT\n";
 

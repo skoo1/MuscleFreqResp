@@ -12,8 +12,10 @@ fprintf('--- Testing Thelen Model ---\n');
 thelen = ThelenMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "None");
 
 % Thelen Muscle Tests
-results_thelen_active  = run_active_test(thelen);
+results_thelen_active  = run_active_test(thelen, 1.0);
+reults = results_thelen_active; save("Result_Thelen_Active_1.0", "reults");
 results_thelen_passive = run_passive_test(thelen);
+reults = results_thelen_passive; save("Result_Thelen_Passive", "reults");
 
 %% Millard Muscle Model
 fprintf('--- Testing Millard Models ---\n');
@@ -27,21 +29,21 @@ fprintf('--- Testing Millard Classic Model ---\n');
 millard_Classic = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "Classic");
 
 % Millard Muscle Tests
-results_millard_Classic_active  = run_active_test(millard_Classic);
+results_millard_Classic_active  = run_active_test(millard_Classic, 1.0);
 results_millard_Classic_passive = run_passive_test(millard_Classic);
 
 fprintf('--- Testing Millard DEq Model ---\n');
 millard_DEq = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "DEq");
 
 % Millard Muscle Tests
-results_millard_DEq_active  = run_active_test(millard_DEq);
+results_millard_DEq_active  = run_active_test(millard_DEq, 1.0);
 results_millard_DEq_passive = run_passive_test(millard_DEq);
 
 fprintf('--- Testing Millard Rigid Model ---\n');
 millard_Rigid = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "Rigid");
 
 % Millard Muscle Tests
-results_millard_Rigid_active  = run_active_test(millard_Rigid);
+results_millard_Rigid_active  = run_active_test(millard_Rigid, 1.0);
 results_millard_Rigid_passive = run_passive_test(millard_Rigid);
 
 

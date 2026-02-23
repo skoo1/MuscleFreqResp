@@ -27,7 +27,7 @@ inline double sinwave(double freq, double t, double a0, double a, double b) {
 }
 
 // 각 시뮬레이션 실행 함수 선언
-int run_MMM_active();
-int run_MMM_passive();
-int run_TMM_active();
+int run_MMM_active(std::string MMM_type, double L_mn_input);
+int run_MMM_passive(std::string MMM_type);
+int run_TMM_active(double L_mn_input);
 int run_TMM_passive();
