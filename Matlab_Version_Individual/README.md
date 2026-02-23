@@ -47,10 +47,10 @@ Reference:
 > Millard, M., Uchida, T., Seth, A., & Delp, S. L. (2013). Flexing computational muscle: modeling and simulation of musculotendon dynamics. *Journal of Biomechanical Engineering*, 135(2), 021005.
 
 **Implementation Notes**
-- This project provides wrapper scripts that configure and test three variants:
-  - `MMM` (classic model)
-  - `MMM-DEq` (damped-equilibrium version)
-  - `MMM-Rigid` (rigid-tendon condition)
+- This project provides options to choose three variants of the Millard model in the beginning of code:
+  - `Classic` (classic model)
+  - `DEq` (damped-equilibrium version)
+  - `Rigid` (rigid-tendon condition)
 
 ---
 
