@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 #include "SimUtils.h"
 #include "Thelen2003MuscleWrapper.h"
 #include "Thelen2003MuscleHelper.h"
@@ -20,16 +24,16 @@ int run_TMM_active(double L_mn_input) {
         // --- 1. Simulation Configuration ---
         // Basic parameters defining the simulation environment and muscle inputs.
 
-        // double L_mn_input = 1.0;      // Target Normalized Muscle Length multiplier (at rest)
+        // double L_mn_input = 1.0;   // Target Normalized Muscle Length multiplier (at rest)
         double U_input = 0.5;         // Excitation Input (u): Constant activation level for active test
         double Amp_input = 0.01;      // Amplitude of input oscillation (if applicable)
         double Mass_input = 3e9;      // External Mass (kg): Very large mass simulates isometric conditions
-        double Damping_input = 0.0;    // External Damping
-        double SimTime_input = 120.0; // Total simulation time (s)
+        double Damping_input = 0.0;   // External Damping
+        double SimTime_input = 100.0; // Total simulation time (s)
         double SimDt_input = 0.001;   // Time step (s)
         double FreqLow_input  = 0.1;  // Start Frequency (Hz)
         double FreqHigh_input = 100;  // End Frequency (Hz)
-        double NumFreqSamples = 100;  // Number of frequency steps
+        double NumFreqSamples = 1000; // Number of frequency steps
 
         // External dynamics
         double Mass_ext = Mass_input;
@@ -115,7 +119,7 @@ int run_TMM_active(double L_mn_input) {
         // Generate logarithmic frequency steps
         std::vector<double> frequencies = logspace(std::log10(FreqLow), std::log10(FreqHigh), NumFreqSamples);
 
-        std::string dir_name = "TMM_Active_results_csv_" + std::to_string(L_mn_input);
+        std::string dir_name = "TMM_Active_result_csv_" + std::to_string(L_mn_input);
         std::filesystem::create_directories(dir_name);
 
         // Save frequency list for post-processing

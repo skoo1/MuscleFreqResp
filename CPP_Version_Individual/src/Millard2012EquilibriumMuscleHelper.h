@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 #include <OpenSim/Actuators/Millard2012EquilibriumMuscle.h>
 
 // Calculates the tendon length that corresponds to a specific target tendon force.

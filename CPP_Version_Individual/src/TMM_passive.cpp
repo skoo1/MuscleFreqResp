@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 #include "SimUtils.h"
 #include "Thelen2003MuscleWrapper.h"
 #include "Thelen2003MuscleHelper.h"
@@ -23,11 +27,11 @@ int run_TMM_passive() {
         double L_mtn_input = 1.05;    // Target Normalized Musculotendon Length multiplier
         double U_input     = 0.0;     // Excitation Input (u): Set to 0.0 for passive test
         double Amp_input   = 0.005;   // Amplitude of length oscillation (normalized)
-        double SimTime_input = 120.0; // Total simulation time (s)
+        double SimTime_input = 100.0; // Total simulation time (s)
         double SimDt_input = 0.001;   // Time step (s)
         double FreqLow_input  = 0.1;  // Start Frequency (Hz)
         double FreqHigh_input = 100;  // End Frequency (Hz)
-        int NumFreqSamples = 100;  // Number of frequency steps
+        int NumFreqSamples = 1000;    // Number of frequency steps
 
         // Frequency Sweep Settings
         double SimTime = SimTime_input;
@@ -115,10 +119,10 @@ int run_TMM_passive() {
         // --- 4. Frequency Sweep Loop ---
         // Generate logarithmic frequency steps
         std::vector<double> frequencies = logspace(std::log10(FreqLow), std::log10(FreqHigh), NumFreqSamples);
-        std::filesystem::create_directories("TMM_Passive_results_csv");
+        std::filesystem::create_directories("TMM_Passive_result_csv");
 
         // Save frequency list
-        std::ofstream freqFile("TMM_Passive_results_csv/frequency_list.csv");
+        std::ofstream freqFile("TMM_Passive_result_csv/frequency_list.csv");
         if (freqFile.is_open()) {
             for (size_t k = 0; k < frequencies.size(); ++k) {
                 freqFile << k << "," << frequencies[k] << "\n";
@@ -132,7 +136,7 @@ int run_TMM_passive() {
         // Loop through each frequency
         for (int k = 0; k < NumFreqSamples; ++k) {
             double freq = frequencies[k];
-            std::ofstream outFile("TMM_Passive_results_csv/freq_res_" + std::to_string(k) + ".csv");
+            std::ofstream outFile("TMM_Passive_result_csv/freq_res_" + std::to_string(k) + ".csv");
             outFile << std::setprecision(16);
             outFile << "time,L_mt,F_m_AT\n"; // Header: Time, Input Length, Output Force
 

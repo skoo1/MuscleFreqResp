@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 // Thelen2003MuscleWrapper.h
 #pragma once
 #include "OpenSim/Actuators/Thelen2003Muscle.h"

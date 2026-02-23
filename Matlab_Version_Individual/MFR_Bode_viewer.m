@@ -1,6 +1,6 @@
-%% Descriptions
-% By Minseung Kim, 2024-11-01
-% Another revision at 2025-11-27
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+% KAIST, Daejeon, South Korea
+% February 23, 2026
 
 % sol/gast (muscle type) | YB/OB (aging) | wod/d (damping)
 % Format:: TMM_results_KMS_Lmn0_uo_sol_YB_wod.mat %

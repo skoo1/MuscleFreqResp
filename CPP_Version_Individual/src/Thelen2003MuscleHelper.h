@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 // Thelen2003MuscleHelper.h
 #pragma once
 #include "Thelen2003MuscleWrapper.h"

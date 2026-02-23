@@ -1,3 +1,7 @@
+// By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+// KAIST, Daejeon, South Korea
+// February 23, 2026
+
 // SimUtils.h
 #pragma once
 
@@ -10,7 +14,7 @@
     #define M_PI 3.14159265358979323846
 #endif
 
-// 공통 유틸리티 함수 (inline으로 선언하여 중복 정의 방지)
+// Common utility function (declared as inline to prevent multiple definitions)
 inline std::vector<double> logspace(double startExp, double endExp, int num) {
     std::vector<double> result;
     if (num <= 1) { result.push_back(std::pow(10, endExp)); return result; }
@@ -26,7 +30,7 @@ inline double sinwave(double freq, double t, double a0, double a, double b) {
     return a + std::sin(2.0 * M_PI * freq * t + phase) * b;
 }
 
-// 각 시뮬레이션 실행 함수 선언
+// Declaration of functions for each simulation run
 int run_MMM_active(std::string MMM_type, double L_mn_input);
 int run_MMM_passive(std::string MMM_type);
 int run_TMM_active(double L_mn_input);

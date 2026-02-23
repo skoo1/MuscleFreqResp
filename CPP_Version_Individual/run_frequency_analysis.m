@@ -1,3 +1,7 @@
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+% KAIST, Daejeon, South Korea
+% February 23, 2026
+
 % main.m - Run Analysis for All Simulations
 clear; clc; close all;
 
@@ -158,23 +162,6 @@ catch
     fprintf('MMM_DEq_Passive Error!\n')
 end
 
-try
-    csv_folder  = './MMM_Rigid_Passive_csv/';
-    save_folder = './MMM_Rigid_Passive_result/';
-    u0          = 0.0;
-    analyze_simulation_results(csv_folder, save_folder, 'MMM-Rigid', 'Passive', u0, L_mn_target);
-catch
-    fprintf('MMM_Rigid_Passive Error!\n')
-end
-
-try
-    csv_folder  = './MMM_DEq_Passive_csv/';
-    save_folder = './MMM_DEq_Passive_result/';
-    u0          = 0.0;
-    analyze_simulation_results(csv_folder, save_folder, 'MMM-DEq', 'Passive', u0, L_mn_target);
-catch
-    fprintf('MMM_DEq_Passive Error!\n')
-end
 try
     csv_folder  = './MMM_Rigid_Passive_csv/';
     save_folder = './MMM_Rigid_Passive_result/';

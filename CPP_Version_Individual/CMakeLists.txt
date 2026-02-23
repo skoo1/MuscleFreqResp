@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenSim REQUIRED)
 
-add_executable(muscle_app
+add_executable(SimRunner
     src/main.cpp
     src/MMM_active.cpp
     src/MMM_passive.cpp
@@ -18,13 +18,13 @@ add_executable(muscle_app
     src/Millard2012EquilibriumMuscleHelper.cpp
 )
 
-target_include_directories(muscle_app
+target_include_directories(SimRunner
     PRIVATE
     ${OpenSim_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(muscle_app
+target_link_libraries(SimRunner
     PRIVATE
     ${OpenSim_LIBRARIES}
 )

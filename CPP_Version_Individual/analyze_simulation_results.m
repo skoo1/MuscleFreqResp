@@ -1,3 +1,7 @@
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+% KAIST, Daejeon, South Korea
+% February 23, 2026
+
 function analyze_simulation_results(csv_folder, save_folder, model_name, sim_type, u0, L_mn)
     % analyze_simulation_results
     % C++ 시뮬레이션 결과(CSV)를 읽어 Bode Plot을 그리고 .mat 파일로 저장합니다.
@@ -120,7 +124,7 @@ function analyze_simulation_results(csv_folder, save_folder, model_name, sim_typ
     semilogx(sin_f, mag_db, 'o-', 'MarkerSize', 3, 'LineWidth', 1, 'Color', cm);
     grid on;
     xlim([0.1 100]);
-    ylim([10 100]);
+    ylim([10 150]);
     if strcmp(sim_type, 'Active')
         ylabel("Magnitude (dB) [N/\Delta u]", 'FontSize', 12);
     else
@@ -133,7 +137,7 @@ function analyze_simulation_results(csv_folder, save_folder, model_name, sim_typ
     semilogx(sin_f, pha, 'o-', 'MarkerSize', 3, 'LineWidth', 1, 'Color', cm);
     grid on;
     xlim([0.1 100]);
-    ylim([-180 10]);
+    ylim([-180 50]);
     xlabel("Frequency (Hz)", 'FontSize', 14);
     ylabel("Phase (deg)", 'FontSize', 12);
     title('Phase Response');
