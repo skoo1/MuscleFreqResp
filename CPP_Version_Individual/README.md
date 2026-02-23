@@ -13,10 +13,22 @@ The repository includes:
 # Installation & Usage
 
 ### 1. Prerequisite (Crucial Step)
+To Compile and run the C++ code, you must install the OpenSim-Core library.
+
+Download the source code from the official [OpenSim-Core] (https://github.com/opensim-org/opensim-core) repository.
+
+Compile and install the OpenSim-Core.
 
 ---
 
 ### 2. Running the C++ code
+Modify CMakeLists.txt if necessary.
+
+The code is cross-platform and should work on any OS, provided that OpenSim-Core has been properly compiled.
+
+The pre-compiled version (Windows 11, x64) and the necessary OpenSim-Core DLLs are included in Release_Windows_x64_Binary_with_OpenSim_Dlls.zip.
+
+This C++ code generates time-series data for each frequency. Use run_frequency_analysis.m to post-process the data and obtain the frequency response results.
 
 ---
 
