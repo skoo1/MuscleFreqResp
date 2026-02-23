@@ -78,6 +78,7 @@ Reference:
 
 ## Author
 - **Minseung Kim**, Ph.D. Student (KAIST)
+- **Seungwoo Yoon**, Ph.D. (KAIST)
 - **Seungbum Koo**, Ph.D. (KAIST)
 
 ## Revision Notes

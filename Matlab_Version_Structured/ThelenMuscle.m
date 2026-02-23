@@ -1,6 +1,6 @@
-% By Minseung Kim and Seungbum Koo
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
 % KAIST, Daejeon, South Korea
-% February 8, 2026
+% February 23, 2026
 
 classdef ThelenMuscle < MuscleModel
     properties

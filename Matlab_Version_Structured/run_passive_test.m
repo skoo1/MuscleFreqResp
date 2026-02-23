@@ -1,6 +1,6 @@
-% By Minseung Kim and Seungbum Koo
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
 % KAIST, Daejeon, South Korea
-% February 8, 2026
+% February 23, 2026
 
 function results = run_passive_test(muscleModel)
     % Sim configuration
@@ -16,7 +16,7 @@ function results = run_passive_test(muscleModel)
     SimDt_input    = 0.001;
     FreqLow_input  = 0.1;
     FreqHigh_input = 100;
-    NumFreqSamples = 10;
+    NumFreqSamples = 100;
 
     % 1. Simulation Configuration
     SimTime    = SimTime_input;

@@ -1,8 +1,16 @@
-% By Minseung Kim and Seungbum Koo
-% January 26, 2026
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+% KAIST, Daejeon, South Korea
+% February 23, 2026
 
 clc; clear;
 addpath('..\MMM\src\');
+
+% ==========================================================
+% Select Muscle Model Type
+% ==========================================================
+MMM_type = "Classic";
+% MMM_type = "DEq";
+% MMM_type = "Rigid";
 
 % Sim configuration
 % L_mtn_input  = 1.05; % for passive test
@@ -37,7 +45,7 @@ u0          = U_input;
 
 % Load Millard-Muscle model parameters
 [muscleArch, normMuscleCurves, modelConfig, MMM] = ...
-    init_MMM(muscleName, muscleName, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm);
+    init_MMM(muscleName, muscleName, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm, MMM_type);
 
 % Muscle parameter initialization
 L_mn0           = L_mn_target;
@@ -45,34 +53,52 @@ L_m0            = L_mn_target * L_mo;
 L_m_AT0         = L_m0 * cos(alphaOpt);
 V_m0            = V_m_target;
 
-% Calculate the equilibrium external force at initial state
 a = u0;
-L_mt_temp  = L_m_AT0 + L_ts;
-pathState   = [0, L_mt_temp];
-muscleState = [0, L_m_AT0];
 
-mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
-    a, pathState, muscleState, ...
-    muscleArch, normMuscleCurves, modelConfig);
-% disp(mtInfo.initialization.err)
-
-F_m_AT  = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-F_t     = F_m_AT;
-F_tn    = F_t / F_mo;
-L_tn = calcBezierYFcnXDerivative(F_tn, normMuscleCurves.tendonInverseCurve, 0);
-L_t  = L_tn * muscleArch.tendonSlackLength;
-
-pathState = [0; L_m_AT0 + L_t];
-muscleState = [0; L_m_AT0];
-
-mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
-    a, pathState, muscleState, ...
-    muscleArch, normMuscleCurves, modelConfig);
-% disp(mtInfo.initialization.err)
-
-F_ext_equil = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
-L_mt0 = L_m_AT0 + L_t;
-% V_mt0 = V_mt_target;
+% ==========================================================
+% Initialization (Branching for Rigid Tendon)
+% ==========================================================
+if modelConfig.useElasticTendon == 1
+    % Elastic Tendon: Calculate precise tendon stretch
+    L_mt_temp  = L_m_AT0 + L_ts;
+    pathState   = [0, L_mt_temp];
+    muscleState = [0, L_m_AT0];
+    
+    mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+        a, pathState, muscleState, ...
+        muscleArch, normMuscleCurves, modelConfig);
+    % disp(mtInfo.initialization.err)
+    
+    F_m_AT  = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+    F_t     = F_m_AT;
+    F_tn    = F_t / F_mo;
+    L_tn = calcBezierYFcnXDerivative(F_tn, normMuscleCurves.tendonInverseCurve, 0);
+    L_t  = L_tn * muscleArch.tendonSlackLength;
+    
+    pathState = [0; L_m_AT0 + L_t];
+    muscleState = [0; L_m_AT0];
+    
+    mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+        a, pathState, muscleState, ...
+        muscleArch, normMuscleCurves, modelConfig);
+    % disp(mtInfo.initialization.err)
+    
+    F_ext_equil = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+    L_mt0 = L_m_AT0 + L_t;
+    % V_mt0 = V_mt_target;
+else
+    % Rigid Tendon: Tendon length is always tendonSlackLength
+    L_t = L_ts;
+    L_mt0 = L_m_AT0 + L_t;
+    pathState = [0; L_mt0];
+    muscleState_dummy = [0; 0];
+    
+    mtInfo = calcMillard2012DampedEquilibriumMuscleInfo( ...
+        a, pathState, muscleState_dummy, ...
+        muscleArch, normMuscleCurves, modelConfig);
+        
+    F_ext_equil = mtInfo.muscleDynamicsInfo.fiberForceAlongTendon;
+end
 
 % Dynamics simulation parameters
 totalTime  = SimTime_input;
@@ -93,6 +119,8 @@ pha                 = zeros(1, length(frequencies));
 sin_f               = zeros(1, length(frequencies));
 mag                 = zeros(1, length(frequencies));
 exc                 = zeros(1, length(frequencies));
+
+fprintf('--- Running Active Test for %s (%s) ---\n', muscleName, MMM_type);
 
 parfor k = 1 : length(frequencies)
     tic;
@@ -122,55 +150,72 @@ parfor k = 1 : length(frequencies)
 
         % parfor temporary variable initialization
         F_t_c = 0;
+        pathState = [V_mt; L_mt];
 
-        % -----------------------------------------------------------------
-        % Newton-Raphson Solver Start
-        % -----------------------------------------------------------------
-        L_m_AT_c   = L_m_AT;  % Initial guess: value from previous step
-        max_iter   = 50;
-        iter_count = 0;
-        error_c    = 1.0;
-        delta      = 1e-7;  % Perturbation step size
-        tol        = 1e-8;  % Tolerance
-
-        while ( abs(real(error_c)) > tol && iter_count < max_iter)
-            pathState        = [V_mt; L_mt];
-
-            V_m_AT_c         = (L_m_AT_c - L_m_AT) / dt;
-            muscleState_c    = [V_m_AT_c; L_m_AT_c];
-
-            mtInfo_c         = calcMillard2012DampedEquilibriumMuscleInfo(...
-                                    a(i), pathState, muscleState_c, ...
-                                    muscleArch, normMuscleCurves, modelConfig);
-            F_t_c            = mtInfo_c.muscleDynamicsInfo.tendonForce;
-            F_m_AT_c         = mtInfo_c.muscleDynamicsInfo.fiberForceAlongTendon;
-            % Error = Tendon Force - Projected Fiber Force
-            error_c          = F_t_c - F_m_AT_c;
-
-            L_m_AT_p         = L_m_AT_c + delta;
-            V_m_AT_p         = (L_m_AT_p - L_m_AT) / dt; 
-            
-            muscleState_p    = [V_m_AT_p; L_m_AT_p];
-            mtInfo_p         = calcMillard2012DampedEquilibriumMuscleInfo(...
-                                    a(i), pathState, muscleState_p, ...
-                                    muscleArch, normMuscleCurves, modelConfig);
-            F_t_p            = mtInfo_p.muscleDynamicsInfo.tendonForce;
-            F_m_AT_p         = mtInfo_p.muscleDynamicsInfo.fiberForceAlongTendon;
-            error_p          = F_t_p - F_m_AT_p;
-
-            % Newton-Raphson Update
-            J = (error_p - error_c) / delta; % Jacobian
-            
-            if abs(J) < 1e-14
-                J = 1e-14; % Prevent division by zero
+        % ==========================================================
+        % Main Logic (Branching for Rigid Tendon)
+        % ==========================================================
+        if modelConfig.useElasticTendon == 1
+            % -----------------------------------------------------------------
+            % Newton-Raphson Solver Start
+            % -----------------------------------------------------------------
+            L_m_AT_c   = L_m_AT;  % Initial guess: value from previous step
+            max_iter   = 50;
+            iter_count = 0;
+            error_c    = 1.0;
+            delta      = 1e-7;  % Perturbation step size
+            tol        = 1e-8;  % Tolerance
+    
+            while ( abs(real(error_c)) > tol && iter_count < max_iter)
+                iter_count = iter_count + 1;
+    
+                V_m_AT_c         = (L_m_AT_c - L_m_AT) / dt;
+                muscleState_c    = [V_m_AT_c; L_m_AT_c];
+    
+                mtInfo_c         = calcMillard2012DampedEquilibriumMuscleInfo(...
+                                        a(i), pathState, muscleState_c, ...
+                                        muscleArch, normMuscleCurves, modelConfig);
+                F_t_c            = mtInfo_c.muscleDynamicsInfo.tendonForce;
+                F_m_AT_c         = mtInfo_c.muscleDynamicsInfo.fiberForceAlongTendon;
+                % Error = Tendon Force - Projected Fiber Force
+                error_c          = F_t_c - F_m_AT_c;
+    
+                L_m_AT_p         = L_m_AT_c + delta;
+                V_m_AT_p         = (L_m_AT_p - L_m_AT) / dt; 
+                
+                muscleState_p    = [V_m_AT_p; L_m_AT_p];
+                mtInfo_p         = calcMillard2012DampedEquilibriumMuscleInfo(...
+                                        a(i), pathState, muscleState_p, ...
+                                        muscleArch, normMuscleCurves, modelConfig);
+                F_t_p            = mtInfo_p.muscleDynamicsInfo.tendonForce;
+                F_m_AT_p         = mtInfo_p.muscleDynamicsInfo.fiberForceAlongTendon;
+                error_p          = F_t_p - F_m_AT_p;
+    
+                % Newton-Raphson Update
+                J = (error_p - error_c) / delta; % Jacobian
+                
+                if abs(J) < 1e-14
+                    J = 1e-14; % Prevent division by zero
+                end
+                
+                step = error_c / J;
+                L_m_AT_c = L_m_AT_c - step;
+                
+                % Bounds check (Optional but recommended)
+                if L_m_AT_c < 1e-6, L_m_AT_c = 1e-6; end
+                if L_m_AT_c > L_mt, L_m_AT_c = L_mt - 1e-6; end
             end
+        else
+            % ------------------------------------------------------
+            % Kinematic Evaluation (Rigid Tendon)
+            % ------------------------------------------------------
+            muscleState_dummy = [0; 0];
+            mtInfo_c = calcMillard2012DampedEquilibriumMuscleInfo(...
+                                    a(i), pathState, muscleState_dummy, ...
+                                    muscleArch, normMuscleCurves, modelConfig);
             
-            step = error_c / J;
-            L_m_AT_c = L_m_AT_c - step;
-            
-            % Bounds check (Optional but recommended)
-            if L_m_AT_c < 1e-6, L_m_AT_c = 1e-6; end
-            if L_m_AT_c > L_mt, L_m_AT_c = L_mt - 1e-6; end
+            L_m_AT_c = mtInfo_c.muscleLengthInfo.fiberLengthAlongTendon;
+            F_t_c    = mtInfo_c.muscleDynamicsInfo.tendonForce;
         end
 
         L_m_AT    = L_m_AT_c;
@@ -229,34 +274,36 @@ if ~exist(saveFolder, 'dir')
     mkdir(saveFolder);
 end
 
-fileName = [num2str(L_mn_target) '_' num2str(u0) '_' muscleName '_YB_wod_aF_n_' mass_label '.mat'];
+fileName = [num2str(L_mn_target) '_' num2str(u0) '_' muscleName '_' char(MMM_type) '_YB_wod_aF_n_' mass_label '.mat'];
 fullPath = fullfile(saveFolder, fileName);
 savingdata_freq = visual_result;
 save(fullPath, 'savingdata_freq');
 
 % Bode plots
-figure();
-sg              = sgtitle(sprintf('Bode plot w/ u_{0} = %.2f', u0), 'FontSize', 18);
+figure('Name', ['Active Test - ' char(MMM_type)]);
+sg              = sgtitle(sprintf('Bode plot w/ u_{0} = %.2f (%s)', u0, MMM_type), 'FontSize', 18);
 cm              = hsv(1);
 
 mag_values = 20 * log10(visual_result{2});
 
 subplot(2, 1, 1);
-semilogx(visual_result{1}, mag_values, 'o', 'MarkerSize', 1, ...
+semilogx(visual_result{1}, mag_values, '-o', 'MarkerSize', 3, 'LineWidth', 1.5, ...
     'Color', cm, 'DisplayName', sprintf('L_{mn} = %.2f, V_{m} = %.2f', L_mn_target, V_m_target));
 ylabel("Magnitude (dB)", 'FontSize', 13);
 grid on;
 xlim([0.1 100]);
 ylim([10 100]);
+title('Magnitude Response');
 
 subplot(2, 1, 2);
-semilogx(visual_result{1}, visual_result{3}, 'o', 'MarkerSize', 1, ...
+semilogx(visual_result{1}, visual_result{3}, '-o', 'MarkerSize', 3, 'LineWidth', 1.5, ...
     'Color', cm, 'DisplayName', sprintf('L_{mn} = %.2f, V_{m} = %.2f', L_mn_target, V_m_target));
 xlabel("Frequency (Hz)", 'FontSize', 15);
 ylabel("Phase (deg)", 'FontSize', 13);
 grid on;
 xlim([0.1 100]);
 ylim([-180 10]);
+title('Phase Response');
 
 %% Functions
 function input = sinwave(frq, t, a0, a, b)
@@ -283,7 +330,7 @@ function Tau = get_Tau(a, u, param)
 end
 
 
-function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName, muscleAbbr, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm)
+function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName, muscleAbbr, F_mo, L_mo, L_ts, alphaOpt, V_mmax_norm, type_str)
 
     % 1. Default Parameters & Constants
     maximumPennationAngle = 89 * (pi/180);
@@ -337,6 +384,18 @@ function [muscleArch, normMuscleCurves, modelConfig, MMM] = init_MMM(muscleName,
     modelConfig.minActivation       = 1e-10;
     modelConfig.iterMax             = 10000;
     modelConfig.tol                 = 1e-10;
+
+    % Apply specific configurations based on MMM_type
+    if strcmpi(type_str, "DEq")
+        modelConfig.useElasticTendon    = 1;
+        modelConfig.useFiberDamping     = 1;
+        modelConfig.damping             = 0.1;
+    elseif strcmpi(type_str, "Rigid")
+        modelConfig.useElasticTendon    = 0;
+        modelConfig.useFiberDamping     = 1;
+        modelConfig.damping             = 0.1;
+    end
+
 
     % 6. Additional Constants (MMM)
     MMM = struct();

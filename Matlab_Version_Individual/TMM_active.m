@@ -1,5 +1,6 @@
-% By Minseung Kim and Seungbum Koo
-% January 26, 2026
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
+% KAIST, Daejeon, South Korea
+% February 23, 2026
 
 clear; clc;
 

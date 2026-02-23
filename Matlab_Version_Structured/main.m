@@ -1,6 +1,6 @@
-% By Minseung Kim and Seungbum Koo
+% By Minseung Kim, Seungwoo Yoon and Seungbum Koo
 % KAIST, Daejeon, South Korea
-% February 8, 2026
+% February 23, 2026
 
 clear; clc; close all;
 
@@ -76,7 +76,7 @@ subplot(2,1,1);
 semilogx(results_thelen_passive{1}, 20*log10(results_thelen_passive{2}), 'r-', 'LineWidth', 1.5); hold on;
 semilogx(results_millard_Classic_passive{1}, 20*log10(results_millard_Classic_passive{2}), 'g-', 'LineWidth', 1.5);
 semilogx(results_millard_DEq_passive{1}, 20*log10(results_millard_DEq_passive{2}), 'b-', 'LineWidth', 1.5);
-% semilogx(results_millard_Rigid_passive{1}, 20*log10(results_millard_Rigid_passive{2}), 'y-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_passive{1}, 20*log10(results_millard_Rigid_passive{2}), 'y-', 'LineWidth', 1.5);
 title('Passive Response: Magnitude');
 xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
 legend('Thelen', 'Millard Classic', 'Millard DEq', 'Millard Rigid'); 
@@ -87,7 +87,7 @@ subplot(2,1,2);
 semilogx(results_thelen_passive{1}, results_thelen_passive{3}, 'r-', 'LineWidth', 1.5); hold on;
 semilogx(results_millard_Classic_passive{1}, results_millard_Classic_passive{3}, 'g-', 'LineWidth', 1.5);
 semilogx(results_millard_DEq_passive{1}, results_millard_DEq_passive{3}, 'b-', 'LineWidth', 1.5);
-% semilogx(results_millard_Rigid_passive{1}, results_millard_Rigid_passive{3}, 'y-', 'LineWidth', 1.5);
+semilogx(results_millard_Rigid_passive{1}, results_millard_Rigid_passive{3}, 'y-', 'LineWidth', 1.5);
 title('Passive Response: Phase');
 xlabel('Frequency (Hz)'); ylabel('Phase (deg)');
 grid on; xlim([0.1 100]); ylim([-90 180]);
