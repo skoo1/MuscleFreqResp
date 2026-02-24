@@ -222,26 +222,26 @@ int run_MMM_passive(std::string MMM_type) {
 
                         while (std::abs(error) > tol && iter < max_iter) {
                             iter++;
-                            auto calc_force_error = [&](double l_at_val) -> double {
-                                double L_m_curr_val = std::sqrt(l_at_val * l_at_val + L_m_height * L_m_height);
-                                double cos_phi = l_at_val / L_m_curr_val;
+                            auto calc_force_error = [&](double L_m_AT_val) -> double {
+                                double L_m_val = std::sqrt(L_m_AT_val * L_m_AT_val + L_m_height * L_m_height);
+                                double cos_phi = L_m_AT_val / L_m_val;
 
-                                double L_t = L_mt - l_at_val;
-                                double F_tn = ftCurve.calcValue(L_t / L_ts);
-                                double F_t = F_tn * F_mo;
+                                double L_t_val = L_mt - L_m_AT_val;
+                                double F_tn_val = ftCurve.calcValue(L_t_val / L_ts);
+                                double F_t_val = F_tn_val * F_mo;
 
-                                double V_m = (L_m_curr_val - L_m_prev_val) / SimDt_input;
-                                double V_m_norm = V_m / (V_mmax_norm * L_mo);
+                                double V_m_val = (L_m_val - L_m_prev_val) / SimDt_input;
+                                double V_mn_val = V_m_val / (V_mmax_norm * L_mo);
 
-                                double L_m_norm = L_m_curr_val / L_mo;
-                                double f_l = flCurve.calcValue(L_m_norm);
-                                double f_p = fpCurve.calcValue(L_m_norm);
-                                double f_v = fvCurve.calcValue(V_m_norm);
+                                double L_mn_val = L_m_val / L_mo;
+                                double f_l = flCurve.calcValue(L_mn_val);
+                                double f_p = fpCurve.calcValue(L_mn_val);
+                                double f_v = fvCurve.calcValue(V_mn_val);
 
-                                double F_mn = a * f_l * f_v + f_p + dampingBeta * V_m_norm;
-                                double F_m_AT = (F_mn * F_mo) * cos_phi;
+                                double F_mn_val = a * f_l * f_v + f_p + dampingBeta * V_mn_val;
+                                double F_m_AT_val = (F_mn_val * F_mo) * cos_phi;
 
-                                return F_t - F_m_AT;
+                                return F_t_val - F_m_AT_val;
                             };
 
                             double err1 = calc_force_error(L_m_AT_curr);

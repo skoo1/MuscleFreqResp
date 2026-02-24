@@ -176,42 +176,42 @@ int run_TMM_active(double L_mn_input) {
                 while (std::abs(error) > 1e-8 && iter < max_iter) {
                     iter++;
 
-                    // Lambda function to calculate error at a given length (l_val)
-                    auto calc_error = [&](double l_val) -> double {
+                    // Lambda function to calculate error at a given length (L_mn_val)
+                    auto calc_error = [&](double L_mn_val) -> double {
                         // Current Fiber Length
-                        double L_m = l_val * L_mo;
+                        double L_m_val = L_mn_val * L_mo;
 
                         // Pennation Angle Geometry
-                        double sin_phi = L_m_height / L_m;
+                        double sin_phi = L_m_height / L_m_val;
                         if (sin_phi > 1.0) sin_phi = 1.0;
                         double cos_phi = std::cos(std::asin(sin_phi));
 
                         // Calculate Tendon Length: L_t = L_mt - L_m * cos(phi)
-                        double L_t = L_mt - L_m * cos_phi;
+                        double L_t_val = L_mt - L_m_val * cos_phi;
 
                         // Normalized Tendon Length (L_tn = 1.0 + strain)
                         // Note: Thelen's calcfse takes normalized length, not strain directly.
-                        double L_tn = L_t / L_ts;
+                        double L_tn_val = L_t_val / L_ts;
 
                         // Tendon Force
-                        double F_tn = m.calcfse_(L_tn);
+                        double F_tn_val = m.calcfse_(L_tn_val);
 
                         // Fiber Velocity
                         // V_mn = (dL_mn / dt) / V_max
-                        double V_mn = ((l_val - L_mn_prev) * L_mo / dt) / (V_mmax_norm * L_mo);
+                        double V_mn_val = ((L_mn_val - L_mn_prev) * L_mo / dt) / (V_mmax_norm * L_mo);
 
                         // Fiber Force Components
-                        double fl = m.calcfal_(l_val); // active force-length multiplier
-                        double fp = m.calcfpe_(l_val); // passive force normalized
+                        double fl = m.calcfal_(L_mn_val); // active force-length multiplier
+                        double fp = m.calcfpe_(L_mn_val); // passive force normalized
 
                         // Calculate active Force-Velocity multiplier (Inverse logic compared to OpenSim)
-                        double fv = calc_force_velocity(m, V_mn, a);
+                        double fv = calc_force_velocity(m, V_mn_val, a);
 
                         // Total Fiber Force (Normalized)
-                        double F_mn = a * fl * fv + fp;
+                        double F_mn_val = a * fl * fv + fp;
 
                         // Error: Tendon Force - Projected Fiber Force
-                        return F_tn - F_mn * cos_phi;
+                        return F_tn_val - F_mn_val * cos_phi;
                     };
 
                     // Newton-Raphson Step

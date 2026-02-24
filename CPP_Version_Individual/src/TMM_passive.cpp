@@ -158,6 +158,7 @@ int run_TMM_passive() {
                 // Note: The loop starts solving from the second step (i>0) to use velocity.
 
                 if (i > 0) {
+                    double L_mn_prev = L_mn;
                     double L_mnc = L_mn; // Initial guess
                     int max_iter = 50;
                     double error = 1.0;
@@ -169,35 +170,35 @@ int run_TMM_passive() {
                         iter++;
 
                         // Error Calculation Lambda
-                        auto calc_error = [&](double l_val) -> double {
+                        auto calc_error = [&](double L_mn_val) -> double {
                             // Current Fiber Length
-                            double L_m = l_val * L_mo;
+                            double L_m_val = L_mn_val * L_mo;
 
                             // Pennation Angle
-                            double sin_phi = L_m_height / L_m;
+                            double sin_phi = L_m_height / L_m_val;
                             if (sin_phi > 1.0) sin_phi = 1.0;
                             double cos_phi = std::cos(std::asin(sin_phi));
 
                             // Tendon Force Calculation
-                            double L_t = L_mt - L_m * cos_phi;
-                            double L_tn = L_t / L_ts;
-                            double F_tn_val = m.calcfse_(L_tn);
+                            double L_t_val = L_mt - L_m_val * cos_phi;
+                            double L_tn_val = L_t_val / L_ts;
+                            double F_tn_val = m.calcfse_(L_tn_val);
 
                             // Fiber Velocity Calculation
                             // V_mn = (dL_mn / dt) / V_max
                             // Note: Uses backward difference (Current Guess - Previous State)
-                            double V_mn = ((l_val - L_mn) * L_mo / dt) / (V_mmax_norm * L_mo);
+                            double V_mn_val = ((L_mn_val - L_mn_prev) * L_mo / dt) / (V_mmax_norm * L_mo);
 
                             // Fiber Force Components
-                            double fl = m.calcfal_(l_val);  // Active Force-Length Multiplier
-                            double fp = m.calcfpe_(l_val);  // Normalized Passive Force
-                            double fv = calc_force_velocity(m, V_mn, a); // Active Force-Velocity Multiplier
+                            double fl = m.calcfal_(L_mn_val);  // Active Force-Length Multiplier
+                            double fp = m.calcfpe_(L_mn_val);  // Normalized Passive Force
+                            double fv = calc_force_velocity(m, V_mn_val, a); // Active Force-Velocity Multiplier
 
                             // Total Fiber Force
-                            double F_fib_norm = a * fl * fv + fp;
+                            double F_mn_val = a * fl * fv + fp;
 
                             // Equilibrium Error
-                            return F_tn_val - F_fib_norm * cos_phi;
+                            return F_tn_val - F_mn_val * cos_phi;
                         };
 
                         double err1 = calc_error(L_mnc);

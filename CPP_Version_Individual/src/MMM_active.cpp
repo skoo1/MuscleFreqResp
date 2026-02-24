@@ -117,12 +117,15 @@ int run_MMM_active(std::string MMM_type, double L_mn_input) {
         // ------------------------------------------------------------------
         // 2. Initialization (Finding Equilibrium State)
         // ------------------------------------------------------------------
-        double L_m_init = L_mo * 1.0;
+        double L_m_init = L_mo * L_mn_input;
         double L_m_height = L_mo * std::sin(alphaOpt);
-        double fl_init = flCurve.calcValue(1.0);
-        double fp_init = fpCurve.calcValue(1.0);
+        double fl_init = flCurve.calcValue(L_mn_input);
+        double fp_init = fpCurve.calcValue(L_mn_input);
         double F_m_init = (U_input * fl_init + fp_init) * F_mo;
-        double phi_init = std::asin(L_m_height / L_m_init);
+
+        double sin_phi_init = L_m_height / L_m_init;
+        if (sin_phi_init > 1.0) sin_phi_init = 1.0;
+        double phi_init = std::asin(sin_phi_init);
         double F_t_prev = F_m_init * std::cos(phi_init);
 
         double L_t_init;
@@ -193,26 +196,26 @@ int run_MMM_active(std::string MMM_type, double L_mn_input) {
 
                     while (std::abs(error) > tol && iter < max_iter) {
                         iter++;
-                        auto calc_force_error = [&](double L_m) -> double {
-                            double sin_phi = L_m_height / L_m;
+                        auto calc_force_error = [&](double L_m_val) -> double {
+                            double sin_phi = L_m_height / L_m_val;
                             if (sin_phi > 1.0) sin_phi = 1.0;
                             double cos_phi = std::sqrt(1.0 - sin_phi * sin_phi);
 
-                            double L_t = L_mt - L_m * cos_phi;
-                            double L_t_norm = L_t / L_ts;
-                            double F_t = ftCurve.calcValue(L_t_norm) * F_mo;
+                            double L_t_val = L_mt - L_m_val * cos_phi;
+                            double L_tn_val = L_t_val / L_ts;
+                            double F_t_val = ftCurve.calcValue(L_tn_val) * F_mo;
 
-                            double V_m_val = (L_m - L_m_prev) / dt;
-                            double V_mn = V_m_val / (V_mmax_norm * L_mo);
+                            double V_m_val = (L_m_val - L_m_prev) / dt;
+                            double V_mn_val = V_m_val / (V_mmax_norm * L_mo);
 
-                            double L_mn = L_m / L_mo;
-                            double fl = flCurve.calcValue(L_mn);
-                            double fp = fpCurve.calcValue(L_mn);
-                            double fv = fvCurve.calcValue(V_mn);
+                            double L_mn_val = L_m_val / L_mo;
+                            double fl = flCurve.calcValue(L_mn_val);
+                            double fp = fpCurve.calcValue(L_mn_val);
+                            double fv = fvCurve.calcValue(L_mn_val);
 
-                            double F_mn = a * fl * fv + fp + dampingBeta * V_mn;
-                            double F_m_AT = (F_mn * F_mo) * cos_phi;
-                            return F_t - F_m_AT;
+                            double F_mn_val = a * fl * fv + fp + dampingBeta * V_mn_val;
+                            double F_m_AT_val = (F_mn_val * F_mo) * cos_phi;
+                            return F_t_val - F_m_AT_val;
                         };
 
                         double err1 = calc_force_error(L_m_curr);
