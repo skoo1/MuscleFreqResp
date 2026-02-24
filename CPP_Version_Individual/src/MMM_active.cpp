@@ -211,7 +211,7 @@ int run_MMM_active(std::string MMM_type, double L_mn_input) {
                             double L_mn_val = L_m_val / L_mo;
                             double fl = flCurve.calcValue(L_mn_val);
                             double fp = fpCurve.calcValue(L_mn_val);
-                            double fv = fvCurve.calcValue(L_mn_val);
+                            double fv = fvCurve.calcValue(V_mn_val);
 
                             double F_mn_val = a * fl * fv + fp + dampingBeta * V_mn_val;
                             double F_m_AT_val = (F_mn_val * F_mo) * cos_phi;
