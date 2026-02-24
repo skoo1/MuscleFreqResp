@@ -59,7 +59,7 @@ mwinPts         = 8;
 refband         = [9 10];
 
 MMM_variations  = cell(n, 1);
-Model_names     = {'TMM', 'MMM', 'MMM-DEq', 'MMM-Rigid'};
+Model_names     = {'TMM', 'MMM-Claasic', 'MMM-DEq', 'MMM-Rigid'};
 model_names     = cell(n, 1);
 
 for i = 1 : n
@@ -114,8 +114,8 @@ for i = 1 : n
     else
         if contains(filepath, 'TMM', 'IgnoreCase', true)
             thisModel = 'TMM';
-        elseif contains(filepath, 'MMM', 'IgnoreCase', true)
-            thisModel = 'MMM';
+        elseif contains(filepath, 'MMM_Claasic', 'IgnoreCase', true)
+            thisModel = 'MMM-Claasic';
         end
     end
 

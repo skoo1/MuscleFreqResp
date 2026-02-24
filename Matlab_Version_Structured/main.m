@@ -12,10 +12,23 @@ fprintf('--- Testing Thelen Model ---\n');
 thelen = ThelenMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "None");
 
 % Thelen Muscle Tests
+results_thelen_active  = run_active_test(thelen, 0.6);
+savingdata_freq = results_thelen_active; save("0.6_0.5_Sol_YB_wod_TMM.mat", "savingdata_freq");
+
+results_thelen_active  = run_active_test(thelen, 0.8);
+savingdata_freq = results_thelen_active; save("0.8_0.5_Sol_YB_wod_TMM.mat", "savingdata_freq");
+
 results_thelen_active  = run_active_test(thelen, 1.0);
-reults = results_thelen_active; save("Result_Thelen_Active_1.0", "reults");
+savingdata_freq = results_thelen_active; save("1.0_0.5_Sol_YB_wod_TMM.mat", "savingdata_freq");
+
+results_thelen_active  = run_active_test(thelen, 1.2);
+savingdata_freq = results_thelen_active; save("1.2_0.5_Sol_YB_wod_TMM.mat", "savingdata_freq");
+
+results_thelen_active  = run_active_test(thelen, 1.4);
+savingdata_freq = results_thelen_active; save("1.4_0.5_Sol_YB_wod_TMM.mat", "savingdata_freq");
+
 results_thelen_passive = run_passive_test(thelen);
-reults = results_thelen_passive; save("Result_Thelen_Passive", "reults");
+savingdata_freq = results_thelen_passive; save("1.05_0.0_Sol_YB_wod_TMM.mat", "savingdata_freq");
 
 %% Millard Muscle Model
 fprintf('--- Testing Millard Models ---\n');
@@ -29,22 +42,67 @@ fprintf('--- Testing Millard Classic Model ---\n');
 millard_Classic = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "Classic");
 
 % Millard Muscle Tests
+results_millard_Classic_active  = run_active_test(millard_Classic, 0.6);
+savingdata_freq = results_millard_Classic_active; save("0.6_0.5_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
+
+results_millard_Classic_active  = run_active_test(millard_Classic, 0.8);
+savingdata_freq = results_millard_Classic_active; save("0.8_0.5_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
+
 results_millard_Classic_active  = run_active_test(millard_Classic, 1.0);
+savingdata_freq = results_millard_Classic_active; save("1.0_0.5_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
+
+results_millard_Classic_active  = run_active_test(millard_Classic, 1.2);
+savingdata_freq = results_millard_Classic_active; save("1.2_0.5_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
+
+results_millard_Classic_active  = run_active_test(millard_Classic, 1.4);
+savingdata_freq = results_millard_Classic_active; save("1.4_0.5_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
+
 results_millard_Classic_passive = run_passive_test(millard_Classic);
+savingdata_freq = results_millard_Classic_passive; save("1.05_0.0_Sol_YB_wod_MMM_Classic.mat", "savingdata_freq");
 
 fprintf('--- Testing Millard DEq Model ---\n');
 millard_DEq = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "DEq");
 
 % Millard Muscle Tests
+results_millard_DEq_active  = run_active_test(millard_DEq, 0.6);
+savingdata_freq = results_millard_DEq_active; save("0.6_0.5_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
+
+results_millard_DEq_active  = run_active_test(millard_DEq, 0.8);
+savingdata_freq = results_millard_DEq_active; save("0.8_0.5_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
+
 results_millard_DEq_active  = run_active_test(millard_DEq, 1.0);
+savingdata_freq = results_millard_DEq_active; save("1.0_0.5_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
+
+results_millard_DEq_active  = run_active_test(millard_DEq, 1.2);
+savingdata_freq = results_millard_DEq_active; save("1.2_0.5_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
+
+results_millard_DEq_active  = run_active_test(millard_DEq, 1.4);
+savingdata_freq = results_millard_DEq_active; save("1.4_0.5_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
+
 results_millard_DEq_passive = run_passive_test(millard_DEq);
+savingdata_freq = results_millard_DEq_passive; save("1.05_0.0_Sol_YB_wod_MMM_DEq.mat", "savingdata_freq");
 
 fprintf('--- Testing Millard Rigid Model ---\n');
 millard_Rigid = MillardMuscle('Soleus', 3549, 0.05, 0.25, 0.4363, 0.0, 0.0, "Rigid");
 
 % Millard Muscle Tests
+results_millard_Rigid_active  = run_active_test(millard_Rigid, 0.6);
+savingdata_freq = results_millard_Rigid_active; save("0.6_0.5_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
+
+results_millard_Rigid_active  = run_active_test(millard_Rigid, 0.8);
+savingdata_freq = results_millard_Rigid_active; save("0.8_0.5_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
+
 results_millard_Rigid_active  = run_active_test(millard_Rigid, 1.0);
+savingdata_freq = results_millard_Rigid_active; save("1.0_0.5_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
+
+results_millard_Rigid_active  = run_active_test(millard_Rigid, 1.2);
+savingdata_freq = results_millard_Rigid_active; save("1.2_0.5_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
+
+results_millard_Rigid_active  = run_active_test(millard_Rigid, 1.4);
+savingdata_freq = results_millard_Rigid_active; save("1.4_0.5_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
+
 results_millard_Rigid_passive = run_passive_test(millard_Rigid);
+savingdata_freq = results_millard_Rigid_passive; save("1.05_0.0_Sol_YB_wod_MMM_Rigid.mat", "savingdata_freq");
 
 
 %% Results comparison

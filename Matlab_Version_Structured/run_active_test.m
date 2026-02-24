@@ -11,11 +11,11 @@ function results = run_active_test(muscleModel, L_mn_input)
     Amp_input      = 0.01;
     Mass_input     = 3e9;
     Damping_imput  = 0.0;
-    SimTime_input  = 120;
+    SimTime_input  = 100;
     SimDt_input    = 0.001;
     FreqLow_input  = 0.1;
     FreqHigh_input = 100;
-    NumFreqSamples = 100;
+    NumFreqSamples = 1000;
 
     % Simulation Configuration
     SimTime    = SimTime_input;

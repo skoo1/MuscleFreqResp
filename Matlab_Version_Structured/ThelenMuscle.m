@@ -107,7 +107,7 @@ classdef ThelenMuscle < MuscleModel
 
             max_iter  = 50;
             iter      = 0;
-            err     = 1.0;
+            err       = 1.0;
             tol       = 1e-8;
             delta     = 1e-7;
 
@@ -170,7 +170,7 @@ classdef ThelenMuscle < MuscleModel
 
             max_iter  = 50;
             iter      = 0;
-            err     = 1.0;
+            err       = 1.0;
             tol       = 1e-8;
             delta     = 1e-7;
 
