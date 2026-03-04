@@ -67,7 +67,7 @@ for i = 1 : n
     data                = load(filePath);
 
     savingdata_freq     = data.savingdata_freq;
-    
+     
     if istable(savingdata_freq)
         sin_f_data{i}   = savingdata_freq{:, 1};   % freq
         mag_data{i}     = savingdata_freq{:, 2};   % mag
@@ -107,15 +107,15 @@ for i = 1 : n
 
     thisModel = 'Unknown';
 
-    if endsWith(name, '_DEq')
+    if contains(name, '_DEq')
         thisModel = 'MMM-DEq';
-    elseif endsWith(name, '_Rigid')
+    elseif contains(name, '_Rigid')
         thisModel = 'MMM-Rigid';
     else
-        if contains(filepath, 'TMM', 'IgnoreCase', true)
+        if contains(name, 'TMM', 'IgnoreCase', true)
             thisModel = 'TMM';
-        elseif contains(filepath, 'MMM_Claasic', 'IgnoreCase', true)
-            thisModel = 'MMM-Claasic';
+        elseif contains(name, 'MMM_Classic', 'IgnoreCase', true)
+            thisModel = 'MMM-Classic';
         end
     end
 
@@ -224,7 +224,7 @@ for i = 1 : n
         plot(ax_mag, bw_value, end_mag, 'X', 'Color', cm(idx,:), ...
             'MarkerSize', 20, 'LineWidth', 2, 'HandleVisibility', 'off');
 
-        y_start = 53;      
+        y_start = 52.5;      
         delta_y = 10;      
         y_band  = y_start - delta_y*(i-1);
         x1      = 0.1;
@@ -256,7 +256,7 @@ for i = 1 : n
             label_str = sprintf('%s, Bandwidth: %.2f Hz', thisModel, x2);
         end
 
-        text(ax_mag, x_mid, y_band + 3.5, label_str, ...
+        text(ax_mag, x_mid, y_band + 2.9, label_str, ...
              'FontSize', 27, 'FontWeight', 'bold', ...
              'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', ...
              'Color', 'k', 'HandleVisibility','off');
@@ -280,14 +280,14 @@ set(ax_mag, 'FontSize', 25);
 grid(ax_mag, 'on');
 
 if isPassiveMode
-    ylim(ax_mag, [80 100]);
+    ylim(ax_mag, [85 115]);
 
     xlabel(ax_phase, "Frequency (Hz)", 'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
     ylabel(ax_phase, 'Phase (deg)', 'FontSize', 30, 'FontName', 'Times New Roman', 'Rotation', 0);
     set(ax_phase, 'XScale', 'log');
     set(ax_phase, 'FontSize', 25);
     grid(ax_phase, 'on');
-    ylim(ax_phase, [-50 50]);
+    ylim(ax_phase, [0 110]);
 else
     ylim(ax_mag, [10 80]);
 end
