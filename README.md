@@ -30,9 +30,9 @@ Detailed instructions for building and running the code are provided within each
 * [MATLAB Individual Version](./Matlab_Version_Individual) - Standalone scripts
 * [MATLAB Structured Version](./Matlab_Version_Structured) - Systematic analysis and batch processing
 
-# Muscle Models
+## Muscle Models
 
-## 1. Thelen Muscle Model (TMM)
+### 1. Thelen Muscle Model (TMM)
 MATLAB implementation based on:
 
 > Thelen, D. G. (2003). *Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older adults.* Journal of Biomechanical Engineering, 125(1), 70–77.
@@ -41,7 +41,7 @@ MATLAB implementation based on:
 - The governing equations described in the paper were implemented directly in MATLAB.
 - To ensure correctness, core curve functions (F–L, F–V, passive elements, activation dynamics) were reproduced from the original formulation.
 
-## 2. Millard Muscle Model (MMM)
+### 2. Millard Muscle Model (MMM)
 The Millard model is implemented using the official [MATLAB port](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) distributed by the original author.
 
 Reference:
@@ -49,24 +49,24 @@ Reference:
 
 ---
 
-# Sample Result Images
+## Sample Result Images
 
-## Active Tests on Thelen (2003) and Millard (2012)
+### Active Tests on Thelen (2003) and Millard (2012)
 <img src="./images/active_results.png" alt="Active Results" width="400" />
 
-## Passive Tests on Thelen (2003) and Millard (2012)
+### Passive Tests on Thelen (2003) and Millard (2012)
 <img src="./images/passive_results.png" alt="Passive Results" width="400" />
 
 ---
 
-# Other Information
+## Other Information
 
-## Author
+### Author
 - **Minseung Kim**, Ph.D. Student (KAIST)
 - **Seungwoo Yoon**, Ph.D. (KAIST)
 - **Seungbum Koo**, Ph.D. (KAIST)
 
-## Revision Notes
+### Revision Notes
 - **August 2025**: Initial implementation
 - **August 2025**: README and main script update
 - **November 2025**: Debugged runtime errors
