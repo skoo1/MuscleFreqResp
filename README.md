@@ -1,47 +1,51 @@
-# MATLAB Implementation: Structured Muscle Frequency Response
+# MuscleFreqResp (MFR)
 
-This directory contains a **refactored, object-oriented (OOP) implementation** of the muscle frequency response analysis. Unlike the individual scripts, this version uses class-based muscle models for better modularity, making it easier to compare different models and integrate new ones.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![OpenSim](https://img.shields.io/badge/OpenSim-4.x-blue)](https://opensim.org/)
+[![MATLAB](https://img.shields.io/badge/MATLAB-R2025b-orange)](https://www.mathworks.com/products/matlab.html)
 
----
-
-## 🏗 Project Architecture
-
-This version is organized to separate the muscle dynamics (Models) from the simulation logic (Tests).
-
-### 1. Muscle Model Classes (OOP)
-* `MuscleModel.m`: The base class (Abstract) defining the common interface for all muscle models.
-* `ThelenMuscle.m`: Class implementation of the **Thelen (2003)** muscle model.
-* `MillardMuscle.m`: Class implementation of the **Millard (2012)** muscle model, interfacing with the core MMM functions.
-
-### 2. Simulation & Analysis Scripts
-* `main.m`: The main entry point. It orchestrates the entire process from model initialization to final plotting.
-* `run_active_test.m`: A modular function dedicated to performing frequency sweeps in the active state.
-* `run_passive_test.m`: A modular function dedicated to performing frequency sweeps in the passive state.
+**MuscleFreqResp** provides a comprehensive framework for analyzing the frequency response of Hill-type muscle models. This tool compares the dynamic characteristics of **Thelen (2003)** and **Millard (2012)** models in both active and passive states as presented in our manuscript (link will be provided upon publication).
 
 ---
 
-## 🚀 How to Use
+## 🚀 Key Features
+* **Dual-Language Implementation:** Identical frequency response tests in both C++ (OpenSim-based) and MATLAB.
+* **Comparative Analysis:** Tools to generate Bode plots for active/passive muscle dynamics.
+* **Thelen (2003) Core:** Independent MATLAB implementation of the Thelen model's governing equations.
 
-1. **Open MATLAB** and navigate to this directory (`Matlab_Version_Structured`).
-2. **Setup Dependencies**: 
-   Ensure the `MMM` folder (containing the official Millard model) is present in the root directory and added to your MATLAB path.
-3. **Run the Analysis**:
-   Simply execute the `main.m` script:
-   ```matlab
-   run('main.m')
-   ```
-4. Results:
-   The script will automatically:
-* Instantiate both Thelen and Millard muscle objects.
-* Run active and passive frequency response simulations.
-* Generate comprehensive Bode plots comparing the models.
+## 📁 Repository Structure
+* `CPP_Version_Individual`: C++ source code requiring OpenSim-Core.
+* `Matlab_Version_Individual`: MATLAB scripts for individual tests.
+* `Matlab_Version_Structured`: Organized MATLAB scripts for systematic testing.
+* `MMM`: Ported Millard (2012) muscle model files.
+* `images`: Visualization of frequency response results.
 
---- 
+---
 
-## 💎 Why use the Structured Version?
-* Scalability: Want to test a new muscle model? Just create a new class inheriting from `MuscleModel.m`.
-* Consistency: Ensuring that both TMM and MMM are tested under identical simulation conditions (frequency range, time steps, etc.) defined in the test scripts.
-* Automation: A single click in main.m handles the entire pipeline—from simulation to professional visualization.
+## 🔧 Installation & Usage
+
+Detailed instructions for building and running the code are provided within each sub-project directory. Please click the links below to view the specific guide for each version:
+
+* [C++ Version Individual](./CPP_Version_Individual) - Requires OpenSim-Core and CMake
+* [MATLAB Individual Version](./Matlab_Version_Individual) - Standalone scripts
+* [MATLAB Structured Version](./Matlab_Version_Structured) - Systematic analysis and batch processing
+
+## Muscle Models
+
+### 1. Thelen Muscle Model (TMM)
+MATLAB implementation based on:
+
+> Thelen, D. G. (2003). *Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older adults.* Journal of Biomechanical Engineering, 125(1), 70–77.
+
+**Implementation Notes**
+- The governing equations described in the paper were implemented directly in MATLAB.
+- To ensure correctness, core curve functions (F–L, F–V, passive elements, activation dynamics) were reproduced from the original formulation.
+
+### 2. Millard Muscle Model (MMM)
+The Millard model is implemented using the official [MATLAB port](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) distributed by the original author.
+
+Reference:
+> Millard, M., Uchida, T., Seth, A., & Delp, S. L. (2013). Flexing computational muscle: modeling and simulation of musculotendon dynamics. *Journal of Biomechanical Engineering*, 135(2), 021005.
 
 ---
 
@@ -52,3 +56,19 @@ This version is organized to separate the muscle dynamics (Models) from the simu
 
 ### Passive Tests on Thelen (2003) and Millard (2012)
 <img src="./images/passive_results.png" alt="Passive Results" width="400" />
+
+---
+
+## Other Information
+
+### Author
+- **Minseung Kim**, Ph.D. Student (KAIST)
+- **Seungwoo Yoon**, Ph.D. (KAIST)
+- **Seungbum Koo**, Ph.D. (KAIST)
+
+### Revision Notes
+- **August 2025**: Initial implementation
+- **August 2025**: README and main script update
+- **November 2025**: Debugged runtime errors
+- **January 2026**: Minor bug fix and refactoring
+- **February 2026**: C++ implementation of tests using OpenSim functions
