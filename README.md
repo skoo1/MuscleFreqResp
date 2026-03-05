@@ -1,38 +1,34 @@
 # MuscleFreqResp (MFR)
 
-This repository contains the code and data for analyzing the frequency response of Thelen (2003) and Millard (2012) muscle models during active and passive tests, as presented in our manuscript (link will be provided upon publication).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![OpenSim](https://img.shields.io/badge/OpenSim-4.x-blue)](https://opensim.org/)
+[![MATLAB](https://img.shields.io/badge/MATLAB-R2025b-orange)](https://www.mathworks.com/products/matlab.html)
 
-The repository includes:
-- C++ OpenSim Implementations: Active and passive tests of Thelen (2003) and Millard (2012) models. (Tested on Windows 11 with Visual Studio 2022)
-- MATLAB Implementations: The same tests conducted using MATLAB-based muscle models. (Tested on Windows 11 with MATLAB R2025b)
-- Thelen (2003) Model Source: MATLAB implementation of the Thelen muscle model.
-- Analysis Scripts: Scripts for generating Bode plots for both active and passive state analyses.
+**MuscleFreqResp** provides a comprehensive framework for analyzing the frequency response of Hill-type muscle models. This tool compares the dynamic characteristics of **Thelen (2003)** and **Millard (2012)** models in both active and passive states as presented in our manuscript (link will be provided upon publication).
 
 ---
 
-# Installation & Usage
+## 🚀 Key Features
+* **Dual-Language Implementation:** Identical frequency response tests in both C++ (OpenSim-based) and MATLAB.
+* **Comparative Analysis:** Tools to generate Bode plots for active/passive muscle dynamics.
+* **Thelen (2003) Core:** Independent MATLAB implementation of the Thelen model's governing equations.
 
-### 1. Prerequisite (Crucial Step)
-To use the C++ code, you must include the OpenSim-Core library.
-1. Download the source code from the official [OpenSim-Core] (https://github.com/opensim-org/opensim-core) repository.
-2. Compile and install the OpenSim-Core.
-
-To use the Matlab code, you must include the original Matlab implementation code of the Millard Muscle Model.
-1. Create a folder named **`MMM`** in the root directory of this repository.
-2. Download the code from the official [Millard2012EquilibriumMuscleMatlabPort](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) repository.
-3. Place all the downloaded files into the `MMM` folder.
-* It is already included in this repository for your convenience.
-
-### 2. Running the code
-C++ Code - Compile it along with OpenSim-Core and run the muscle_app.exe.
-- Modify CMakeLists.txt if necessary.
-- The code should be compiled and work on all OS if OpenSim-Core has been compiled. 
-
-Matlab Code - Simply download this repository and run the .m files in MATLAB. No complex installation is required.
-- Open MATLAB and navigate to the repository folder.
-- Run the main.m which runs active and passive tests on the muscles. 
+## 📁 Repository Structure
+* `CPP_Version_Individual`: C++ source code requiring OpenSim-Core.
+* `Matlab_Version_Individual`: MATLAB scripts for individual tests.
+* `Matlab_Version_Structured`: Organized MATLAB scripts for systematic testing.
+* `MMM`: Ported Millard (2012) muscle model files.
+* `images`: Visualization of frequency response results.
 
 ---
+
+## 🔧 Installation & Usage
+
+Detailed instructions for building and running the code are provided within each sub-project directory. Please click the links below to view the specific guide for each version:
+
+* [C++ Version Individual](./CPP_Version_Individual) - Requires OpenSim-Core and CMake
+* [MATLAB Individual Version](./Matlab_Version_Individual) - Standalone scripts
+* [MATLAB Structured Version](./Matlab_Version_Structured) - Systematic analysis and batch processing
 
 # Muscle Models
 
@@ -53,7 +49,7 @@ Reference:
 
 ---
 
-# Result Images
+# Sample Result Images
 
 ## Active Tests on Thelen (2003) and Millard (2012)
 <img src="./images/active_results.png" alt="Active Results" width="400" />
