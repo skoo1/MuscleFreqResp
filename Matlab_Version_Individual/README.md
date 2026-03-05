@@ -1,56 +1,50 @@
-# MuscleFreqResp (MFR)
+# MATLAB Implementation: Muscle Frequency Response (Individual)
 
-This repository contains MATLAB implementations of two numerical Hill-type muscle models and scripts for frequency response analysis as described in our submitted manuscript.
-
-The repository includes:
-- MATLAB code, tested on **Windows 11** using **MATLAB R2025b**
-- Implementations of the Thelen (2003) and Millard (2012) muscle models
-- Scripts for generating Bode plots for both active and passive state analyses
+This directory contains standalone MATLAB scripts for analyzing the frequency response of the **Thelen (2003)** and **Millard (2012)** muscle models. This version is ideal for quick testing, parameter tuning, and individual model verification without the need for C++ compilation.
 
 ---
 
-# Installation & Usage
+## 🛠 Prerequisites
 
-### 1. Prerequisite (Crucial Step)
-To use the Millard Muscle Model, you must include the original implementation code.
-
-1. Create a folder named **`MMM`** in the root directory of this repository.
-2. Download the code from the official [Millard2012EquilibriumMuscleMatlabPort](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) repository.
-3. Place all the downloaded files into the `MMM` folder.
-* It is already included in this repository for your convenience.
-
-> **Note:** Without the `MMM` folder and its contents, the Millard model scripts will not function.
-
-### 2. Running the Scripts
-Simply download this repository and run the .m files in MATLAB. No complex installation is required.
-
-- Open MATLAB and navigate to the repository folder.
-- Run the desired script directly from the Command Window (e.g., `TMM_active`).
+* **MATLAB R2025b** or later is recommended.
 
 ---
 
-# Muscle Models
+## 📂 Source Files Description
 
-## 1. Thelen Muscle Model (TMM)
-MATLAB implementation based on:
+### 1. Muscle Test Scripts
+These scripts perform the core simulation for each model and state:
+* `TMM_active.m` / `TMM_passive.m`: Frequency response tests for the **Thelen Muscle Model (TMM)**.
+* `MMM_active.m` / `MMM_passive.m`: Frequency response tests for the **Millard Muscle Model (MMM)**.
 
-> Thelen, D. G. (2003). *Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older adults.* Journal of Biomechanical Engineering, 125(1), 70–77.
+### 2. Visualization Tool
+* `MFR_Bode_viewer.m`: A dedicated utility script to load simulation results and generate **Bode plots** (Magnitude and Phase) for comparison.
 
-**Implementation Notes**
-- The governing equations described in the paper were implemented directly in MATLAB.
-- To ensure correctness, core curve functions (F–L, F–V, passive elements, activation dynamics) were reproduced from the original formulation.
+---
 
-## 2. Millard Muscle Model (MMM)
-The Millard model is implemented using the official [MATLAB port](https://github.com/mjhmilla/Millard2012EquilibriumMuscleMatlabPort) distributed by the original author.
+## 🚀 How to Use
 
-Reference:
-> Millard, M., Uchida, T., Seth, A., & Delp, S. L. (2013). Flexing computational muscle: modeling and simulation of musculotendon dynamics. *Journal of Biomechanical Engineering*, 135(2), 021005.
+1. **Open MATLAB** and navigate to this directory (`Matlab_Version_Individual`).
+2. **Run a Test Script**:
+   Select a model you wish to test (e.g., `TMM_active.m`) and run it.
+   ```matlab
+   run('TMM_active.m')
+   ```
+  
+This will execute the frequency sweep simulation and store the response data in the workspace or as a temporary file.
 
-**Implementation Notes**
-- This project provides options to choose three variants of the Millard model in the beginning of code:
-  - `Classic` (classic model)
-  - `DEq` (damped-equilibrium version)
-  - `Rigid` (rigid-tendon condition)
+3. **Visualize Results**:  
+   Use the viewer script to generate professional plots:
+   ```
+   run('MFR_Bode_viewer.m')
+   ```
+
+---
+
+## 📊 Key Features
+* Individual Control: Each script is self-contained, allowing for easy modification of frequency ranges, amplitudes, or muscle parameters.
+* Direct Comparison: Use the viewer to overlay results from different models (TMM vs. MMM) to analyze dynamic differences.
+* Rapid Prototyping: Ideal for researchers who want to quickly test a specific hypothesis before running large-scale C++ simulations.
 
 ---
 
@@ -74,15 +68,3 @@ Reference:
 
 ---
 
-# Other Information
-
-## Author
-- **Minseung Kim**, Ph.D. Student (KAIST)
-- **Seungwoo Yoon**, Ph.D. (KAIST)
-- **Seungbum Koo**, Ph.D. (KAIST)
-
-## Revision Notes
-- **August 2025**: Initial implementation
-- **August 2025**: README and main script update
-- **November 2025**: Debugged runtime errors
-- **January 2026**: Minor bug fix and refactoring
